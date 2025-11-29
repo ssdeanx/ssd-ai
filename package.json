@@ -1,0 +1,66 @@
+{
+  "name": "@ssdeanx/hi-ai",
+  "version": "1.4.0",
+  "description": "Model Context Protocol based AI development assistant with 36 specialized tools for TypeScript, JavaScript, and Python projects - Now with 9-step reasoning framework and Gemini prompting strategies",
+  "displayName": "Hi-AI",
+  "icon": "https://raw.githubusercontent.com/ssdeanx/ssd-ai/main/icon.png",
+  "homepage": "https://github.com/ssdeanx/ssd-ai",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ssdeanx/ssd-ai.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ssdeanx/ssd-ai/issues"
+  },
+  "main": "dist/index.js",
+  "module": "./src/index.ts",
+  "type": "module",
+  "bin": {
+    "hi-ai": "dist/index.js"
+  },
+  "scripts": {
+    "dev": "npm run build && node dist/index.js",
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai",
+    "assistant",
+    "development-tools",
+    "code-analysis",
+    "typescript",
+    "javascript",
+    "python",
+    "semantic-analysis",
+    "code-quality",
+    "memory-management",
+    "project-planning",
+    "claude",
+    "anthropic"
+  ],
+  "author": "Su",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.23.0",
+    "@smithery/sdk": "^1.7.4",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/glob": "^9.0.0",
+    "better-sqlite3": "^12.5.0",
+    "chalk": "^5.6.2",
+    "glob": "^13.0.0",
+    "puppeteer-core": "^24.31.0",
+    "ts-morph": "^27.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.1",
+    "@vitest/ui": "^4.0.14",
+    "biome": "^0.3.3",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.14"
+  }
+}
