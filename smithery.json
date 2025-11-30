@@ -1,12 +1,25 @@
 {
   "name": "@ssdeanx/ssd-ai",
   "description": "AI isn't hard! A perfect AI development kit of 34 tools you can start with a single 'Hi-AI'.",
-  "version": "1.4.0",
+  "version": "1.6.0",
   "author": "ssdeanx",
   "license": "MIT",
   "categories": [
-    "development", "ai-collaboration", "memory-management", "code-quality",
-    "browser-automation", "sequential-thinking", "planning-tools", "productivity"
+    "development",
+    "ai-collaboration",
+    "memory-management",
+    "code-quality",
+    "browser-automation",
+    "sequential-thinking",
+    "planning-tools",
+    "software-development",
+    "software-engineering",
+    "software-testing",
+    "productivity",
+    "documentation",
+    "documentation-generation",
+    "documentation-management",
+    "documentation-review"
   ],
   "homepage": "https://github.com/ssdeanx/ssd-ai",
   "repository": "https://github.com/ssdeanx/ssd-ai",
