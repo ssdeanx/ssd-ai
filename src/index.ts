@@ -1,60 +1,99 @@
 #!/usr/bin/env node
 
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
   CallToolRequestSchema,
-  ListToolsRequestSchema,
+  CallToolResult,
+  CompleteRequestSchema,
+  CompleteResult,
   ErrorCode,
+  GetPromptRequestSchema,
+  GetPromptResult,
+  ListPromptsRequestSchema,
+  ListPromptsResult,
+  ListResourcesRequestSchema,
+  ListResourcesResult,
+  ListToolsRequestSchema,
   McpError,
-  CallToolResult
+  ReadResourceRequestSchema,
+  ReadResourceResult,
+  SetLevelRequestSchema
 } from '@modelcontextprotocol/sdk/types.js';
+import { HttpServerTransport } from './transports/http.js';
 
 // Import all tool definitions and handlers
-import { getCurrentTimeDefinition, getCurrentTime } from './tools/time/getCurrentTime.js';
+import { getCurrentTime, getCurrentTimeDefinition } from './tools/time/getCurrentTime.js';
+
+// Import resource definitions and handlers
+import { capabilitiesDefinition, getCapabilitiesContent } from './tools/resources/capabilities.js';
+import { getToolDocumentationContent, toolDocumentationDefinition } from './tools/resources/readme.js';
+
+// Import prompt definitions and handlers
+import { browserDevelopmentDefinition, getBrowserDevelopmentPrompt } from './tools/prompt/browserDevelopment.js';
+import { codeConventionsDefinition, getCodeConventionsPrompt } from './tools/prompt/codeConventions.js';
+import { codeReviewDefinition, getCodeReviewPrompt } from './tools/prompt/codeReview.js';
+import { debugAssistantDefinition, getDebugAssistantPrompt } from './tools/prompt/debugAssistant.js';
+import { getMemoryManagementPrompt, memoryManagementDefinition } from './tools/prompt/memoryManagement.js';
+import { getProjectPlanningPrompt, projectPlanningDefinition } from './tools/prompt/projectPlanning.js';
+import { getPromptEnhancementPrompt, promptEnhancementDefinition } from './tools/prompt/promptEnhancement.js';
+import { getReasoningFrameworkPrompt, reasoningFrameworkDefinition } from './tools/prompt/reasoningFramework.js';
+import { getSemanticAnalysisPrompt, semanticAnalysisDefinition } from './tools/prompt/semanticAnalysis.js';
+import { getSequentialThinkingPrompt, sequentialThinkingDefinition } from './tools/prompt/sequentialThinking.js';
+import { getTimeUtilitiesPrompt, timeUtilitiesDefinition } from './tools/prompt/timeUtilities.js';
+import { getUiPreviewPrompt, uiPreviewDefinition } from './tools/prompt/uiPreview.js';
 
 // Semantic code analysis tools (Serena-inspired)
-import { findSymbolDefinition, findSymbol } from './tools/semantic/findSymbol.js';
-import { findReferencesDefinition, findReferences } from './tools/semantic/findReferences.js';
-import { createThinkingChainDefinition, createThinkingChain } from './tools/thinking/createThinkingChain.js';
-import { analyzeProblemDefinition, analyzeProblem } from './tools/thinking/analyzeProblem.js';
-import { stepByStepAnalysisDefinition, stepByStepAnalysis } from './tools/thinking/stepByStepAnalysis.js';
-import { breakDownProblemDefinition, breakDownProblem } from './tools/thinking/breakDownProblem.js';
-import { thinkAloudProcessDefinition, thinkAloudProcess } from './tools/thinking/thinkAloudProcess.js';
-import { formatAsPlanDefinition, formatAsPlan } from './tools/thinking/formatAsPlan.js';
-import { monitorConsoleLogsDefinition, monitorConsoleLogs } from './tools/browser/monitorConsoleLogs.js';
-import { inspectNetworkRequestsDefinition, inspectNetworkRequests } from './tools/browser/inspectNetworkRequests.js';
-import { saveMemoryDefinition, saveMemory } from './tools/memory/saveMemory.js';
-import { recallMemoryDefinition, recallMemory } from './tools/memory/recallMemory.js';
-import { listMemoriesDefinition, listMemories } from './tools/memory/listMemories.js';
-import { deleteMemoryDefinition, deleteMemory } from './tools/memory/deleteMemory.js';
-import { searchMemoriesDefinition, searchMemoriesHandler } from './tools/memory/searchMemories.js';
-import { updateMemoryDefinition, updateMemory } from './tools/memory/updateMemory.js';
-import { autoSaveContextDefinition, autoSaveContext } from './tools/memory/autoSaveContext.js';
-import { restoreSessionContextDefinition, restoreSessionContext } from './tools/memory/restoreSessionContext.js';
-import { prioritizeMemoryDefinition, prioritizeMemory } from './tools/memory/prioritizeMemory.js';
-import { startSessionDefinition, startSession } from './tools/memory/startSession.js';
-import { getCodingGuideDefinition, getCodingGuide } from './tools/convention/getCodingGuide.js';
-import { applyQualityRulesDefinition, applyQualityRules } from './tools/convention/applyQualityRules.js';
-import { validateCodeQualityDefinition, validateCodeQuality } from './tools/convention/validateCodeQuality.js';
-import { analyzeComplexityDefinition, analyzeComplexity } from './tools/convention/analyzeComplexity.js';
-import { checkCouplingCohesionDefinition, checkCouplingCohesion } from './tools/convention/checkCouplingCohesion.js';
-import { suggestImprovementsDefinition, suggestImprovements } from './tools/convention/suggestImprovements.js';
-import { generatePrdDefinition, generatePrd } from './tools/planning/generatePrd.js';
-import { createUserStoriesDefinition, createUserStories } from './tools/planning/createUserStories.js';
-import { analyzeRequirementsDefinition, analyzeRequirements } from './tools/planning/analyzeRequirements.js';
-import { featureRoadmapDefinition, featureRoadmap } from './tools/planning/featureRoadmap.js';
-import { enhancePromptDefinition, enhancePrompt } from './tools/prompt/enhancePrompt.js';
-import { analyzePromptDefinition, analyzePrompt } from './tools/prompt/analyzePrompt.js';
-import { enhancePromptGeminiDefinition, enhancePromptGemini } from './tools/prompt/enhancePromptGemini.js';
-import { previewUiAsciiDefinition, previewUiAscii } from './tools/ui/previewUiAscii.js';
-import { applyReasoningFrameworkDefinition, applyReasoningFramework } from './tools/reasoning/applyReasoningFramework.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { inspectNetworkRequests, inspectNetworkRequestsDefinition } from './tools/browser/inspectNetworkRequests.js';
+import { monitorConsoleLogs, monitorConsoleLogsDefinition } from './tools/browser/monitorConsoleLogs.js';
+import { analyzeComplexity, analyzeComplexityDefinition } from './tools/convention/analyzeComplexity.js';
+import { applyQualityRules, applyQualityRulesDefinition } from './tools/convention/applyQualityRules.js';
+import { checkCouplingCohesion, checkCouplingCohesionDefinition } from './tools/convention/checkCouplingCohesion.js';
+import { getCodingGuide, getCodingGuideDefinition } from './tools/convention/getCodingGuide.js';
+import { suggestImprovements, suggestImprovementsDefinition } from './tools/convention/suggestImprovements.js';
+import { validateCodeQuality, validateCodeQualityDefinition } from './tools/convention/validateCodeQuality.js';
+import { autoSaveContext, autoSaveContextDefinition } from './tools/memory/autoSaveContext.js';
+import { deleteMemory, deleteMemoryDefinition } from './tools/memory/deleteMemory.js';
+import { listMemories, listMemoriesDefinition } from './tools/memory/listMemories.js';
+import { prioritizeMemory, prioritizeMemoryDefinition } from './tools/memory/prioritizeMemory.js';
+import { recallMemory, recallMemoryDefinition } from './tools/memory/recallMemory.js';
+import { restoreSessionContext, restoreSessionContextDefinition } from './tools/memory/restoreSessionContext.js';
+import { saveMemory, saveMemoryDefinition } from './tools/memory/saveMemory.js';
+import { searchMemoriesDefinition, searchMemoriesHandler } from './tools/memory/searchMemories.js';
+import { startSession, startSessionDefinition } from './tools/memory/startSession.js';
+import { updateMemory, updateMemoryDefinition } from './tools/memory/updateMemory.js';
+import { analyzeRequirements, analyzeRequirementsDefinition } from './tools/planning/analyzeRequirements.js';
+import { createUserStories, createUserStoriesDefinition } from './tools/planning/createUserStories.js';
+import { featureRoadmap, featureRoadmapDefinition } from './tools/planning/featureRoadmap.js';
+import { generatePrd, generatePrdDefinition } from './tools/planning/generatePrd.js';
+import { analyzePrompt, analyzePromptDefinition } from './tools/prompt/analyzePrompt.js';
+import { enhancePrompt, enhancePromptDefinition } from './tools/prompt/enhancePrompt.js';
+import { enhancePromptGemini, enhancePromptGeminiDefinition } from './tools/prompt/enhancePromptGemini.js';
+import { applyReasoningFramework, applyReasoningFrameworkDefinition } from './tools/reasoning/applyReasoningFramework.js';
+import { findReferences, findReferencesDefinition } from './tools/semantic/findReferences.js';
+import { findSymbol, findSymbolDefinition } from './tools/semantic/findSymbol.js';
+import { analyzeProblem, analyzeProblemDefinition } from './tools/thinking/analyzeProblem.js';
+import { breakDownProblem, breakDownProblemDefinition } from './tools/thinking/breakDownProblem.js';
+import { createThinkingChain, createThinkingChainDefinition } from './tools/thinking/createThinkingChain.js';
+import { formatAsPlan, formatAsPlanDefinition } from './tools/thinking/formatAsPlan.js';
+import { stepByStepAnalysis, stepByStepAnalysisDefinition } from './tools/thinking/stepByStepAnalysis.js';
+import { thinkAloudProcess, thinkAloudProcessDefinition } from './tools/thinking/thinkAloudProcess.js';
+import { previewUiAscii, previewUiAsciiDefinition } from './tools/ui/previewUiAscii.js';
 
-// Tool definition interface (minimal, extend as needed)
+// Import pagination utilities
+import { paginateItems } from './types/pagination.js';
+
+// Import task manager
+import { taskManager } from './lib/taskManager.js';
+import type { Task, TaskParams } from './types/task.js';
+
+// Tool definition interface with optional task support
 interface ToolDefinition {
   name?: string;
   description?: string;
+  execution?: {
+    taskSupport?: 'required' | 'optional' | 'forbidden';
+  };
   // allow any additional properties from tool definition objects
   [key: string]: any;
 }
@@ -118,179 +157,777 @@ const tools: ToolDefinition[] = [
   previewUiAsciiDefinition
 ];
 
+// Mark tools that support task augmentation (long-running operations)
+const TASK_ENABLED_TOOLS = new Set([
+  'find_symbol',
+  'find_references',
+  'analyze_complexity',
+  'check_coupling_cohesion',
+  'validate_code_quality',
+  'suggest_improvements',
+  'analyze_requirements',
+  'feature_roadmap',
+  'generate_prd',
+  'apply_reasoning_framework',
+  'enhance_prompt_gemini',
+]);
+
+// Add task support metadata to tool definitions
+tools.forEach((tool) => {
+  if (tool.name && TASK_ENABLED_TOOLS.has(tool.name)) {
+    tool.execution = { taskSupport: 'optional' };
+  }
+});
+
 function createServer(): McpServer {
   const server: McpServer = new McpServer(
     {
       name: 'Hi-AI',
-      version: '1.5.0',
+      version: '1.6.0',
     },
     {
       capabilities: {
-        tools: {
+        logging: {},
+        prompts: {
+          listChanged: true
         },
-        prompts: {},
-        resources: {},
+        resources: {
+          listChanged: true
+        },
+        tools: {
+          listChanged: true
+        },
+        completions: {},
+        // Tasks capability (experimental - MCP 2025-11-25)
+        // Using experimental namespace as tasks are not yet in SDK types
+        experimental: {
+          tasks: {
+            list: {},
+            cancel: {},
+            requests: {
+              tools: {
+                call: {}
+              }
+            }
+          }
+        }
       },
     }
   );
 
-  server.server.setRequestHandler(ListToolsRequestSchema, async (): Promise<{ tools: ToolDefinition[] }> => {
-    return { tools };
+  // Define resources from imported definitions
+  const resources = [
+    toolDocumentationDefinition,
+    capabilitiesDefinition
+  ];
+
+  // Define prompts from imported definitions
+  const prompts = [
+    codeReviewDefinition,
+    debugAssistantDefinition,
+    projectPlanningDefinition,
+    memoryManagementDefinition,
+    timeUtilitiesDefinition,
+    semanticAnalysisDefinition,
+    sequentialThinkingDefinition,
+    browserDevelopmentDefinition,
+    codeConventionsDefinition,
+    promptEnhancementDefinition,
+    reasoningFrameworkDefinition,
+    uiPreviewDefinition
+  ];
+
+  // Register task status change callback for notifications
+  taskManager.onStatusChange(async (task: Task) => {
+    try {
+      // Use type assertion for experimental tasks notification
+      await server.server.notification({
+        method: 'notifications/tasks/status',
+        params: task as unknown as Record<string, unknown>
+      });
+    } catch (error) {
+      console.error('Failed to send task status notification:', error);
+    }
   });
 
+  // ========================================
+  // TOOLS - with pagination support
+  // ========================================
+  interface ListToolsRequestParams {
+    cursor?: string;
+  }
+
+  server.server.setRequestHandler(ListToolsRequestSchema, async (request: { params?: ListToolsRequestParams }): Promise<{ tools: ToolDefinition[]; nextCursor?: string }> => {
+    const cursor = request.params?.cursor;
+    const paginated = paginateItems(tools, cursor, 50);
+
+    return {
+      tools: paginated.items,
+      nextCursor: paginated.nextCursor
+    };
+  });
+
+  // ========================================
+  // RESOURCES - with pagination support
+  // ========================================
+  interface ListResourcesRequestParams {
+    cursor?: string;
+  }
+
+  server.server.setRequestHandler(ListResourcesRequestSchema, async (request: { params?: ListResourcesRequestParams }): Promise<ListResourcesResult & { nextCursor?: string }> => {
+    const cursor = request.params?.cursor;
+    const paginated = paginateItems(resources, cursor, 50);
+
+    return {
+      resources: paginated.items,
+      nextCursor: paginated.nextCursor
+    };
+  });
+
+  server.server.setRequestHandler(ReadResourceRequestSchema, async (request): Promise<ReadResourceResult> => {
+    const { uri } = request.params;
+
+    try {
+      if (uri === toolDocumentationDefinition.uri) {
+        const content = getToolDocumentationContent();
+        return {
+          contents: [{
+            uri,
+            mimeType: toolDocumentationDefinition.mimeType,
+            text: content
+          }]
+        };
+      } else if (uri === capabilitiesDefinition.uri) {
+        const content = getCapabilitiesContent(tools.length, resources.length, prompts.length);
+        return {
+          contents: [{
+            uri,
+            mimeType: capabilitiesDefinition.mimeType,
+            text: content
+          }]
+        };
+      } else {
+        throw new McpError(ErrorCode.InvalidRequest, `Unknown resource: ${uri}`);
+      }
+    } catch (error) {
+      throw new McpError(ErrorCode.InternalError, `Error reading resource: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  });
+
+  // ========================================
+  // PROMPTS - with pagination support
+  // ========================================
+  interface ListPromptsRequestParams {
+    cursor?: string;
+  }
+
+  server.server.setRequestHandler(ListPromptsRequestSchema, async (request: { params?: ListPromptsRequestParams }): Promise<ListPromptsResult & { nextCursor?: string }> => {
+    const cursor = request.params?.cursor;
+    const paginated = paginateItems(prompts, cursor, 50);
+
+    return {
+      prompts: paginated.items,
+      nextCursor: paginated.nextCursor
+    };
+  });
+
+  // ========================================
+  // COMPLETION - argument suggestions
+  // ========================================
+  server.server.setRequestHandler(CompleteRequestSchema, async (request): Promise<CompleteResult> => {
+    const { ref, argument } = request.params;
+
+    try {
+      if (ref.type === 'ref/prompt') {
+        const promptName = ref.name;
+        if (promptName === codeReviewDefinition.name && argument.name === 'language') {
+          return {
+            completion: {
+              values: ['javascript', 'typescript', 'python', 'java', 'cpp', 'go', 'rust', 'csharp', 'php', 'ruby'],
+              hasMore: false,
+              total: 10
+            }
+          };
+        } else if (promptName === debugAssistantDefinition.name && argument.name === 'environment') {
+          return {
+            completion: {
+              values: ['browser', 'node.js', 'electron', 'react-native', 'server', 'desktop'],
+              hasMore: false,
+              total: 6
+            }
+          };
+        } else if (promptName === projectPlanningDefinition.name && argument.name === 'target_audience') {
+          return {
+            completion: {
+              values: ['developers', 'business-users', 'consumers', 'enterprise', 'students', 'general-public'],
+              hasMore: false,
+              total: 6
+            }
+          };
+        } else if (promptName === memoryManagementDefinition.name && argument.name === 'importance_level') {
+          return {
+            completion: {
+              values: ['critical', 'high', 'medium', 'low'],
+              hasMore: false,
+              total: 4
+            }
+          };
+        } else if (promptName === timeUtilitiesDefinition.name && argument.name === 'task_type') {
+          return {
+            completion: {
+              values: ['scheduling', 'conversion', 'calculation', 'planning'],
+              hasMore: false,
+              total: 4
+            }
+          };
+        } else if (promptName === semanticAnalysisDefinition.name && argument.name === 'analysis_type') {
+          return {
+            completion: {
+              values: ['navigation', 'refactoring', 'impact-analysis', 'code-understanding'],
+              hasMore: false,
+              total: 4
+            }
+          };
+        } else if (promptName === sequentialThinkingDefinition.name && argument.name === 'thinking_task') {
+          return {
+            completion: {
+              values: ['problem-solving', 'decision-making', 'analysis', 'planning'],
+              hasMore: false,
+              total: 4
+            }
+          };
+        } else if (promptName === browserDevelopmentDefinition.name && argument.name === 'debugging_task') {
+          return {
+            completion: {
+              values: ['console-analysis', 'network-inspection', 'performance-monitoring', 'error-tracking'],
+              hasMore: false,
+              total: 4
+            }
+          };
+        } else if (promptName === codeConventionsDefinition.name && argument.name === 'code_quality_task') {
+          return {
+            completion: {
+              values: ['validation', 'analysis', 'improvement', 'standards-check'],
+              hasMore: false,
+              total: 4
+            }
+          };
+        } else if (promptName === promptEnhancementDefinition.name && argument.name === 'enhancement_task') {
+          return {
+            completion: {
+              values: ['optimization', 'analysis', 'gemini-enhancement', 'effectiveness-review'],
+              hasMore: false,
+              total: 4
+            }
+          };
+        } else if (promptName === reasoningFrameworkDefinition.name && argument.name === 'reasoning_task') {
+          return {
+            completion: {
+              values: ['problem-analysis', 'decision-making', 'evaluation', 'strategy-development'],
+              hasMore: false,
+              total: 4
+            }
+          };
+        }
+      }
+      // Default empty completion
+      return {
+        completion: {
+          values: [],
+          hasMore: false,
+          total: 0
+        }
+      };
+    } catch (error) {
+      throw new McpError(ErrorCode.InternalError, `Error completing: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  });
+
+  // ========================================
+  // LOGGING
+  // ========================================
+  let currentLogLevel: string = 'info';
+
+  server.server.setRequestHandler(SetLevelRequestSchema, async (request): Promise<{}> => {
+    const { level } = request.params;
+    currentLogLevel = level;
+    // Optionally send a notification
+    await server.server.notification({
+      method: 'notifications/message',
+      params: {
+        level: 'info',
+        logger: 'hi-ai',
+        data: `Log level set to ${level}`
+      }
+    });
+    return {};
+  });
+
+  // ========================================
+  // PROMPTS - get prompt handler
+  // ========================================
+  server.server.setRequestHandler(GetPromptRequestSchema, async (request): Promise<GetPromptResult> => {
+    const { name, arguments: args = {} } = request.params;
+
+    try {
+      if (name === codeReviewDefinition.name) {
+        const language = args.language as string;
+        const code = args.code as string;
+        const projectPath = args.project_path as string;
+        return getCodeReviewPrompt(language, code, projectPath);
+      } else if (name === debugAssistantDefinition.name) {
+        const errorMessage = args.error_message as string;
+        const codeContext = args.code_context as string;
+        const environment = args.environment as string;
+        const reproductionSteps = args.reproduction_steps as string;
+        return getDebugAssistantPrompt(errorMessage, codeContext, environment, reproductionSteps);
+      } else if (name === projectPlanningDefinition.name) {
+        const projectIdea = args.project_idea as string;
+        const targetAudience = args.target_audience as string;
+        const constraints = args.constraints as string;
+        const existingContext = args.existing_context as string;
+        return getProjectPlanningPrompt(projectIdea, targetAudience, constraints, existingContext);
+      } else if (name === memoryManagementDefinition.name) {
+        const taskContext = args.task_context as string;
+        const memoryOperation = args.memory_operation as string;
+        const importanceLevel = args.importance_level as string;
+        const relatedTopics = args.related_topics as string;
+        return getMemoryManagementPrompt(taskContext, memoryOperation, importanceLevel, relatedTopics);
+      } else if (name === timeUtilitiesDefinition.name) {
+        const taskType = args.task_type as string;
+        const context = args.context as string;
+        const timezones = args.timezones as string;
+        const constraints = args.constraints as string;
+        return getTimeUtilitiesPrompt(taskType, context, timezones, constraints);
+      } else if (name === semanticAnalysisDefinition.name) {
+        const analysisType = args.analysis_type as string;
+        const targetSymbol = args.target_symbol as string;
+        const projectPath = args.project_path as string;
+        const analysisScope = args.analysis_scope as string;
+        const specificRequirements = args.specific_requirements as string;
+        return getSemanticAnalysisPrompt(analysisType, targetSymbol, projectPath, analysisScope, specificRequirements);
+      } else if (name === sequentialThinkingDefinition.name) {
+        const thinkingTask = args.thinking_task as string;
+        const domainContext = args.domain_context as string;
+        const complexityLevel = args.complexity_level as string;
+        const outputFormat = args.output_format as string;
+        const constraints = args.constraints as string;
+        return getSequentialThinkingPrompt(thinkingTask, domainContext, complexityLevel, outputFormat, constraints);
+      } else if (name === browserDevelopmentDefinition.name) {
+        const debuggingTask = args.debugging_task as string;
+        const targetUrl = args.target_url as string;
+        const issueDescription = args.issue_description as string;
+        const monitoringDuration = args.monitoring_duration as string;
+        const focusAreas = args.focus_areas as string;
+        return getBrowserDevelopmentPrompt(debuggingTask, targetUrl, issueDescription, monitoringDuration, focusAreas);
+      } else if (name === codeConventionsDefinition.name) {
+        const codeQualityTask = args.code_quality_task as string;
+        const codeToAnalyze = args.code_to_analyze as string;
+        const programmingLanguage = args.programming_language as string;
+        const qualityFocus = args.quality_focus as string;
+        const standardsLevel = args.standards_level as string;
+        return getCodeConventionsPrompt(codeQualityTask, codeToAnalyze, programmingLanguage, qualityFocus, standardsLevel);
+      } else if (name === promptEnhancementDefinition.name) {
+        const enhancementTask = args.enhancement_task as string;
+        const originalPrompt = args.original_prompt as string;
+        const targetUseCase = args.target_use_case as string;
+        const enhancementFocus = args.enhancement_focus as string;
+        const aiModelContext = args.ai_model_context as string;
+        return getPromptEnhancementPrompt(enhancementTask, originalPrompt, targetUseCase, enhancementFocus, aiModelContext);
+      } else if (name === reasoningFrameworkDefinition.name) {
+        const reasoningTask = args.reasoning_task as string;
+        const problemContext = args.problem_context as string;
+        const reasoningApproach = args.reasoning_approach as string;
+        const complexityLevel = args.complexity_level as string;
+        const decisionCriteria = args.decision_criteria as string;
+        return getReasoningFrameworkPrompt(reasoningTask, problemContext, reasoningApproach, complexityLevel, decisionCriteria);
+      } else if (name === uiPreviewDefinition.name) {
+        const uiDescription = args.ui_description as string;
+        const designContext = args.design_context as string;
+        const previewStyle = args.preview_style as string;
+        const keyElements = args.key_elements as string;
+        const layoutFocus = args.layout_focus as string;
+        return getUiPreviewPrompt(uiDescription, designContext, previewStyle, keyElements, layoutFocus);
+      } else {
+        throw new McpError(ErrorCode.InvalidRequest, `Unknown prompt: ${name}`);
+      }
+    } catch (error) {
+      if (error instanceof McpError) throw error;
+      throw new McpError(ErrorCode.InternalError, `Error getting prompt: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  });
+
+  // ========================================
+  // TOOLS - call tool handler (with task support)
+  // ========================================
   interface CallToolRequestParams {
     name: string;
     arguments?: unknown;
+    task?: TaskParams;
+    _meta?: {
+      progressToken?: string | number;
+    };
   }
 
+  // Tool execution function
+  async function executeToolCall(name: string, args: unknown): Promise<CallToolResult> {
+    switch (name) {
+      // Time Utility Tools
+      case 'get_current_time':
+        return await getCurrentTime(args as any) as CallToolResult;
+
+      // Semantic Code Analysis Tools
+      case 'find_symbol':
+        return await findSymbol(args as any) as CallToolResult;
+      case 'find_references':
+        return await findReferences(args as any) as CallToolResult;
+
+      // Sequential Thinking Tools
+      case 'create_thinking_chain':
+        return await createThinkingChain(args as any) as CallToolResult;
+      case 'analyze_problem':
+        return await analyzeProblem(args as any) as CallToolResult;
+      case 'step_by_step_analysis':
+        return await stepByStepAnalysis(args as any) as CallToolResult;
+      case 'break_down_problem':
+        return await breakDownProblem(args as any) as CallToolResult;
+      case 'think_aloud_process':
+        return await thinkAloudProcess(args as any) as CallToolResult;
+      case 'format_as_plan':
+        return await formatAsPlan(args as any) as CallToolResult;
+
+      // Browser Development Tools
+      case 'monitor_console_logs':
+        return await monitorConsoleLogs(args as any) as CallToolResult;
+      case 'inspect_network_requests':
+        return await inspectNetworkRequests(args as any) as CallToolResult;
+
+      // Memory Management Tools
+      case 'save_memory':
+        return await saveMemory(args as any) as CallToolResult;
+      case 'recall_memory':
+        return await recallMemory(args as any) as CallToolResult;
+      case 'list_memories':
+        return await listMemories(args as any) as CallToolResult;
+      case 'delete_memory':
+        return await deleteMemory(args as any) as CallToolResult;
+      case 'search_memories':
+        return await searchMemoriesHandler(args as any) as CallToolResult;
+      case 'update_memory':
+        return await updateMemory(args as any) as CallToolResult;
+      case 'auto_save_context':
+        return await autoSaveContext(args as any) as CallToolResult;
+      case 'restore_session_context':
+        return await restoreSessionContext(args as any) as CallToolResult;
+      case 'prioritize_memory':
+        return await prioritizeMemory(args as any) as CallToolResult;
+      case 'start_session':
+        return await startSession(args as any) as CallToolResult;
+
+      // Convention Tools
+      case 'get_coding_guide':
+        return await getCodingGuide(args as any) as CallToolResult;
+      case 'apply_quality_rules':
+        return await applyQualityRules(args as any) as CallToolResult;
+      case 'validate_code_quality':
+        return await validateCodeQuality(args as any) as CallToolResult;
+      case 'analyze_complexity':
+        return await analyzeComplexity(args as any) as CallToolResult;
+      case 'check_coupling_cohesion':
+        return await checkCouplingCohesion(args as any) as CallToolResult;
+      case 'suggest_improvements':
+        return await suggestImprovements(args as any) as CallToolResult;
+
+      // Planning Tools
+      case 'generate_prd':
+        return await generatePrd(args as any) as CallToolResult;
+      case 'create_user_stories':
+        return await createUserStories(args as any) as CallToolResult;
+      case 'analyze_requirements':
+        return await analyzeRequirements(args as any) as CallToolResult;
+      case 'feature_roadmap':
+        return await featureRoadmap(args as any) as CallToolResult;
+
+      // Prompt Enhancement Tools
+      case 'enhance_prompt':
+        return await enhancePrompt(args as any) as CallToolResult;
+      case 'analyze_prompt':
+        return await analyzePrompt(args as any) as CallToolResult;
+      case 'enhance_prompt_gemini':
+        return await enhancePromptGemini(args as any) as CallToolResult;
+
+      // Reasoning Tools
+      case 'apply_reasoning_framework':
+        return await applyReasoningFramework(args as any) as CallToolResult;
+
+      // UI Preview Tools
+      case 'preview_ui_ascii':
+        return await previewUiAscii(args as any) as CallToolResult;
+
+      default:
+        throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
+    }
+  }
+
+  // Type assertion needed because tasks feature returns CreateTaskResult which SDK doesn't know about
   server.server.setRequestHandler(CallToolRequestSchema, async (request: { params: CallToolRequestParams }, extra: unknown): Promise<CallToolResult> => {
-    const { name, arguments: args } = request.params;
+    const { name, arguments: args, task: taskParams, _meta } = request.params;
 
     try {
-      switch (name) {
-        // Time Utility Tools
-        case 'get_current_time':
-          return await getCurrentTime(args as any) as CallToolResult;
-
-        // Semantic Code Analysis Tools
-        case 'find_symbol':
-          return await findSymbol(args as any) as CallToolResult;
-        case 'find_references':
-          return await findReferences(args as any) as CallToolResult;
-
-        // Sequential Thinking Tools
-        case 'create_thinking_chain':
-          return await createThinkingChain(args as any) as CallToolResult;
-        case 'analyze_problem':
-          return await analyzeProblem(args as any) as CallToolResult;
-        case 'step_by_step_analysis':
-          return await stepByStepAnalysis(args as any) as CallToolResult;
-        case 'break_down_problem':
-          return await breakDownProblem(args as any) as CallToolResult;
-        case 'think_aloud_process':
-          return await thinkAloudProcess(args as any) as CallToolResult;
-        case 'format_as_plan':
-          return await formatAsPlan(args as any) as CallToolResult;
-
-        // Browser Development Tools
-        case 'monitor_console_logs':
-          return await monitorConsoleLogs(args as any) as CallToolResult;
-        case 'inspect_network_requests':
-          return await inspectNetworkRequests(args as any) as CallToolResult;
-
-        // Memory Management Tools
-        case 'save_memory':
-          return await saveMemory(args as any) as CallToolResult;
-        case 'recall_memory':
-          return await recallMemory(args as any) as CallToolResult;
-        case 'list_memories':
-          return await listMemories(args as any) as CallToolResult;
-        case 'delete_memory':
-          return await deleteMemory(args as any) as CallToolResult;
-        case 'search_memories':
-          return await searchMemoriesHandler(args as any) as CallToolResult;
-        case 'update_memory':
-          return await updateMemory(args as any) as CallToolResult;
-        case 'auto_save_context':
-          return await autoSaveContext(args as any) as CallToolResult;
-        case 'restore_session_context':
-          return await restoreSessionContext(args as any) as CallToolResult;
-        case 'prioritize_memory':
-          return await prioritizeMemory(args as any) as CallToolResult;
-        case 'start_session':
-          return await startSession(args as any) as CallToolResult;
-
-        // Convention Tools
-        case 'get_coding_guide':
-          return await getCodingGuide(args as any) as CallToolResult;
-        case 'apply_quality_rules':
-          return await applyQualityRules(args as any) as CallToolResult;
-        case 'validate_code_quality':
-          return await validateCodeQuality(args as any) as CallToolResult;
-        case 'analyze_complexity':
-          return await analyzeComplexity(args as any) as CallToolResult;
-        case 'check_coupling_cohesion':
-          return await checkCouplingCohesion(args as any) as CallToolResult;
-        case 'suggest_improvements':
-          return await suggestImprovements(args as any) as CallToolResult;
-
-        // Planning Tools
-        case 'generate_prd':
-          return await generatePrd(args as any) as CallToolResult;
-        case 'create_user_stories':
-          return await createUserStories(args as any) as CallToolResult;
-        case 'analyze_requirements':
-          return await analyzeRequirements(args as any) as CallToolResult;
-        case 'feature_roadmap':
-          return await featureRoadmap(args as any) as CallToolResult;
-
-        // Prompt Enhancement Tools
-        case 'enhance_prompt':
-          return await enhancePrompt(args as any) as CallToolResult;
-        case 'analyze_prompt':
-          return await analyzePrompt(args as any) as CallToolResult;
-        case 'enhance_prompt_gemini':
-          return await enhancePromptGemini(args as any) as CallToolResult;
-
-        // Reasoning Tools
-        case 'apply_reasoning_framework':
-          return await applyReasoningFramework(args as any) as CallToolResult;
-
-        // UI Preview Tools
-        case 'preview_ui_ascii':
-          return await previewUiAscii(args as any) as CallToolResult;
-
-        default:
+      // Check if this is a task-augmented request
+      if (taskParams) {
+        // Verify the tool supports task augmentation
+        const toolDef = tools.find(t => t.name === name);
+        if (!toolDef) {
           throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
+        }
+
+        const taskSupport = toolDef.execution?.taskSupport;
+        if (taskSupport === 'forbidden') {
+          throw new McpError(ErrorCode.InvalidRequest, `Tool '${name}' does not support task augmentation`);
+        }
+
+        if (!TASK_ENABLED_TOOLS.has(name)) {
+          throw new McpError(ErrorCode.InvalidRequest, `Tool '${name}' does not support task augmentation`);
+        }
+
+        // Create a task for this tool call
+        const createResult = taskManager.createTask(
+          'tools/call',
+          { name, arguments: args },
+          taskParams,
+          _meta?.progressToken
+        );
+
+        // Execute the tool asynchronously
+        taskManager.executeTask(createResult.task.taskId, async () => {
+          return await executeToolCall(name, args);
+        });
+
+        // Return the task creation result immediately
+        // Cast to CallToolResult for SDK compatibility (tasks are experimental)
+        return createResult as unknown as CallToolResult;
       }
+
+      // Normal (non-task) tool execution
+      return await executeToolCall(name, args);
     } catch (error) {
+      if (error instanceof McpError) throw error;
       throw new McpError(ErrorCode.InternalError, `Error executing tool: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   });
+
+  // ========================================
+  // TASKS - handlers for task management
+  // ========================================
+
+  // tasks/get - Get task status
+  interface TasksGetRequestParams {
+    taskId: string;
+  }
+
+  // Custom handler registration for experimental tasks/get method
+  (server.server as any).setRequestHandler(
+    { method: 'tasks/get' },
+    async (request: { params: TasksGetRequestParams }): Promise<Record<string, unknown>> => {
+      const { taskId } = request.params;
+
+      const task = taskManager.getTask({ taskId });
+      if (!task) {
+        throw new McpError(ErrorCode.InvalidParams, `Failed to retrieve task: Task not found`);
+      }
+
+      return task as unknown as Record<string, unknown>;
+    }
+  );
+
+  // tasks/result - Get task result (blocks until terminal status)
+  interface TasksResultRequestParams {
+    taskId: string;
+  }
+
+  // Custom handler registration for experimental tasks/result method
+  (server.server as any).setRequestHandler(
+    { method: 'tasks/result' },
+    async (request: { params: TasksResultRequestParams }): Promise<Record<string, unknown>> => {
+      const { taskId } = request.params;
+
+      // Poll until task reaches terminal status
+      const maxWaitTime = 5 * 60 * 1000; // 5 minutes max wait
+      const pollInterval = 100; // 100ms polling
+      const startTime = Date.now();
+
+      while (Date.now() - startTime < maxWaitTime) {
+        const taskResult = taskManager.getTaskResult({ taskId });
+
+        if (!taskResult) {
+          throw new McpError(ErrorCode.InvalidParams, `Failed to retrieve task: Task not found`);
+        }
+
+        if (taskResult.isTerminal) {
+          if (taskResult.error) {
+            throw new McpError(
+              taskResult.error.code as ErrorCode,
+              taskResult.error.message,
+              taskResult.error.data
+            );
+          }
+
+          // Add related task metadata to result
+          const result = taskResult.result as CallToolResult;
+          return {
+            ...result,
+            _meta: {
+              ...(result._meta || {}),
+              'io.modelcontextprotocol/related-task': { taskId }
+            }
+          } as unknown as Record<string, unknown>;
+        }
+
+        // Wait before next poll
+        await new Promise(resolve => setTimeout(resolve, pollInterval));
+      }
+
+      throw new McpError(ErrorCode.InternalError, `Task timed out waiting for result`);
+    }
+  );
+
+  // tasks/list - List all tasks with pagination
+  interface TasksListRequestParams {
+    cursor?: string;
+  }
+
+  // Custom handler registration for experimental tasks/list method
+  (server.server as any).setRequestHandler(
+    { method: 'tasks/list' },
+    async (request: { params?: TasksListRequestParams }): Promise<Record<string, unknown>> => {
+      const cursor = request.params?.cursor;
+
+      try {
+        return taskManager.listTasks({ cursor }) as unknown as Record<string, unknown>;
+      } catch (error) {
+        if (error instanceof Error && error.message.includes('cursor')) {
+          throw new McpError(ErrorCode.InvalidParams, `Invalid cursor`);
+        }
+        throw error;
+      }
+    }
+  );
+
+  // tasks/cancel - Cancel a task
+  interface TasksCancelRequestParams {
+    taskId: string;
+  }
+
+  // Custom handler registration for experimental tasks/cancel method
+  (server.server as any).setRequestHandler(
+    { method: 'tasks/cancel' },
+    async (request: { params: TasksCancelRequestParams }): Promise<Record<string, unknown>> => {
+      const { taskId } = request.params;
+
+      try {
+        const task = await taskManager.cancelTask({ taskId });
+        if (!task) {
+          throw new McpError(ErrorCode.InvalidParams, `Failed to cancel task: Task not found`);
+        }
+        return task as unknown as Record<string, unknown>;
+      } catch (error) {
+        if (error instanceof Error) {
+          if (error.message.includes('terminal status')) {
+            throw new McpError(ErrorCode.InvalidParams, error.message);
+          }
+        }
+        throw error;
+      }
+    }
+  );
 
   return server;
 }
 
 // Default export for Smithery platform
-export default async function(_: { sessionId: string; config: any }): Promise<McpServer> {
-  // Create and connect the server for the Smithery platform
+
+
+async function main(): Promise<void> {
+  const server: McpServer = createServer();
+
+  // Choose transport based on environment variable
+  const transportType = process.env.MCP_TRANSPORT || 'http';
+
+  if (transportType === 'stdio') {
+    const transport = new StdioServerTransport();
+
+    // Handle process termination gracefully
+    process.on('SIGINT', async () => {
+      taskManager.dispose();
+      await server.close();
+      process.exit(0);
+    });
+
+    process.on('SIGTERM', async () => {
+      taskManager.dispose();
+      await server.close();
+      process.exit(0);
+    });
+
+    // Handle EPIPE errors that occur with sidecar proxy
+    process.on('uncaughtException', (error) => {
+      if (error.message && error.message.includes('EPIPE')) {
+        // Gracefully handle EPIPE errors
+        console.error('Connection closed by client');
+        return;
+      }
+      console.error('Uncaught exception:', error);
+      process.exit(1);
+    });
+
+    process.on('unhandledRejection', (reason, promise) => {
+      console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    });
+
+    await server.connect(transport);
+  } else {
+    // HTTP transport with custom transport
+    const transport = new HttpServerTransport({
+      port: parseInt(process.env.MCP_PORT || '3000'),
+      hostname: process.env.MCP_HOSTNAME || 'localhost',
+      allowedOrigins: ['http://localhost:*', 'https://localhost:*'],
+      allowedHosts: ['127.0.0.1', 'localhost']
+    });
+
+    // Handle process termination gracefully
+    process.on('SIGINT', async () => {
+      console.log('Shutting down MCP server...');
+      taskManager.dispose();
+      transport.close();
+      await server.close();
+      process.exit(0);
+    });
+
+    process.on('SIGTERM', async () => {
+      console.log('Shutting down MCP server...');
+      taskManager.dispose();
+      transport.close();
+      await server.close();
+      process.exit(0);
+    });
+
+    process.on('unhandledRejection', (reason, promise) => {
+      console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    });
+
+    await transport.start();
+    await server.connect(transport as any);
+  }
+}
+
+// Export for Smithery platform (stdio only)
+export default async function (_: { sessionId: string; config: any }): Promise<McpServer> {
+  // Create and connect the server for the Smithery platform using stdio
   const server = createServer();
   const transport = new StdioServerTransport();
   await server.connect(transport);
   return server;
-}
-
-async function main(): Promise<void> {
-  const server: McpServer = createServer();
-  const transport: StdioServerTransport = new StdioServerTransport();
-  
-  // Handle process termination gracefully
-  process.on('SIGINT', async () => {
-    await server.close();
-    process.exit(0);
-  });
-  
-  process.on('SIGTERM', async () => {
-    await server.close();
-    process.exit(0);
-  });
-  
-  // Handle EPIPE errors that occur with sidecar proxy
-  process.on('uncaughtException', (error) => {
-    if (error.message && error.message.includes('EPIPE')) {
-      // Gracefully handle EPIPE errors
-      console.error('Connection closed by client');
-      return;
-    }
-    console.error('Uncaught exception:', error);
-    process.exit(1);
-  });
-  
-  process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-  });
-  
-  await server.connect(transport);
 }
 
 // Only run main when not being imported by Smithery
