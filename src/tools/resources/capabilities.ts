@@ -105,6 +105,50 @@ export function getCapabilitiesContent(toolsCount: number, resourcesCount: numbe
       {
         name: 'memory-management',
         description: 'Intelligent knowledge organization and session management'
+      },
+      {
+        name: 'time-utilities',
+        description: 'Time management and scheduling with timezone conversions'
+      },
+      {
+        name: 'semantic-analysis',
+        description: 'Advanced semantic code analysis and symbol navigation'
+      },
+      {
+        name: 'sequential-thinking',
+        description: 'Structured problem-solving and systematic analysis'
+      },
+      {
+        name: 'browser-development',
+        description: 'Web development debugging and client-side monitoring'
+      },
+      {
+        name: 'code-conventions',
+        description: 'Code quality validation and improvement suggestions'
+      },
+      {
+        name: 'prompt-enhancement',
+        description: 'AI prompt optimization and effectiveness analysis'
+      },
+      {
+        name: 'reasoning-framework',
+        description: 'Advanced reasoning and decision-making frameworks'
+      },
+      {
+        name: 'spec-generation',
+        description: 'Multi-persona specification generation for comprehensive docs'
+      },
+      {
+        name: 'ui-preview',
+        description: 'User interface design and ASCII art preview generation'
+      },
+      {
+        name: 'documentation-generation',
+        description: 'Multi-persona documentation generation for comprehensive technical writing'
+      },
+      {
+        name: 'testing-strategy',
+        description: 'Comprehensive testing strategy development for quality assurance planning'
       }
     ],
     features: [

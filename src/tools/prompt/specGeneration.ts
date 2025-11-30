@@ -1,0 +1,302 @@
+import { PromptDefinition, PromptResult } from '../../types/prompt.js';
+
+export const specGenerationDefinition: PromptDefinition = {
+  name: 'spec-generation',
+  description: 'Comprehensive specification generation using multiple specialized personas for thorough requirements analysis and technical documentation',
+  arguments: [
+    {
+      name: 'spec_type',
+      description: 'Type of specification to generate (api, feature, system, ui, data, security)',
+      required: true
+    },
+    {
+      name: 'spec_subject',
+      description: 'The main subject or feature to specify',
+      required: true
+    },
+    {
+      name: 'context',
+      description: 'Background context, existing systems, or requirements',
+      required: false
+    },
+    {
+      name: 'stakeholders',
+      description: 'Key stakeholders and their roles',
+      required: false
+    },
+    {
+      name: 'constraints',
+      description: 'Technical, business, or timeline constraints',
+      required: false
+    }
+  ]
+};
+
+export function getSpecGenerationPrompt(
+  specType: string,
+  specSubject: string,
+  context: string = 'No specific context provided',
+  stakeholders: string = 'Development team, product owner, end users',
+  constraints: string = 'Standard project constraints apply'
+): PromptResult {
+  return {
+    messages: [
+      {
+        role: 'user',
+        content: {
+          type: 'text',
+          text: `# Enhanced Prompt
+
+## Original Request
+**Objective**: Please generate a comprehensive specification for the following using multiple specialized personas for thorough analysis:
+
+**Specification Type:** ${specType}
+**Subject:** ${specSubject}
+**Context:** ${context}
+**Stakeholders:** ${stakeholders}
+**Constraints:** ${constraints}
+
+## Multi-Persona Specification Generation Process:
+
+Adopt different specialized personas to analyze and document the specification from multiple perspectives. Each persona brings unique expertise and concerns to ensure comprehensive coverage.
+
+### **Persona 1: Business Analyst**
+**Role:** Requirements gathering and business logic definition
+**Focus:** Business value, user needs, functional requirements
+**Deliverables:**
+- Business requirements and use cases
+- User stories with acceptance criteria
+- Business rules and workflows
+- Success metrics and KPIs
+
+### **Persona 2: Technical Architect**
+**Role:** System design and technical feasibility
+**Focus:** Architecture, scalability, integration, technology choices
+**Deliverables:**
+- System architecture and component design
+- Technology stack recommendations
+- Integration points and APIs
+- Performance and scalability requirements
+- Security architecture considerations
+
+### **Persona 3: UX/UI Designer**
+**Role:** User experience and interface design
+**Focus:** User interaction, accessibility, usability
+**Deliverables:**
+- User journey mapping
+- Wire-frames and mock-ups
+- Interaction design patterns
+- Accessibility requirements (WCAG compliance)
+- Responsive design specifications
+
+### **Persona 4: Software Developer**
+**Role:** Implementation feasibility and technical details
+**Focus:** Code structure, algorithms, data models
+**Deliverables:**
+- Detailed technical specifications
+- Data models and database schema
+- API endpoint definitions
+- Error handling and edge cases
+- Code organization and patterns
+
+### **Persona 5: QA Engineer**
+**Role:** Quality assurance and testing strategy
+**Focus:** Testability, quality metrics, validation
+**Deliverables:**
+- Testing strategy and test cases
+- Quality assurance processes
+- Performance and load testing requirements
+- Security testing approach
+- Acceptance criteria validation
+
+### **Persona 6: Product Manager**
+**Role:** Product vision and prioritization
+**Focus:** Roadmap, prioritization, business impact
+**Deliverables:**
+- Product vision and objectives
+- Feature prioritization matrix
+- Release planning and milestones
+- Success metrics and analytics
+- Go-to-market strategy
+
+## Specification Generation Workflow:
+
+### Phase 1: Requirements Gathering
+**Business Analyst + Product Manager Perspective:**
+- Define the problem statement and business objectives
+- Identify user personas and their needs
+- Gather functional and non-functional requirements
+- Define success criteria and acceptance criteria
+
+### Phase 2: Technical Analysis
+**Technical Architect + Developer Perspective:**
+- Assess technical feasibility and constraints
+- Design system architecture and data flows
+- Define APIs, interfaces, and integrations
+- Establish performance and scalability requirements
+
+### Phase 3: User Experience Design
+**UX/UI Designer Perspective:**
+- Create user journey maps and workflows
+- Design user interfaces and interactions
+- Define accessibility and usability requirements
+- Establish design system and brand guidelines
+
+### Phase 4: Implementation Planning
+**Developer + QA Engineer Perspective:**
+- Create detailed technical specifications
+- Define development tasks and effort estimates
+- Establish testing strategy and quality gates
+- Plan deployment and operational requirements
+
+### Phase 5: Validation & Review
+**All Personas Cross-Review:**
+- Validate requirements completeness
+- Identify gaps and inconsistencies
+- Assess technical feasibility vs. business value
+- Finalize specification with stakeholder approval
+
+## Required Specification Deliverables:
+
+### **Executive Summary**
+- Specification overview and business case
+- Key objectives and success criteria
+- High-level scope and timeline
+- Resource requirements and budget impact
+
+### **Functional Requirements**
+- Detailed use cases and user stories
+- Business rules and workflows
+- Data requirements and business logic
+- Integration requirements
+
+### **Technical Specifications**
+- System architecture and component design
+- API specifications and data models
+- Performance and scalability requirements
+- Security and compliance requirements
+
+### **User Experience Specifications**
+- User interface designs and interactions
+- Accessibility and usability requirements
+- Responsive design and device support
+- User onboarding and help systems
+
+### **Implementation Guidelines**
+- Development standards and coding practices
+- Testing strategy and quality assurance
+- Deployment and operational procedures
+- Maintenance and support requirements
+
+### **Risk Assessment & Mitigation**
+- Technical risks and dependencies
+- Business risks and market factors
+- Timeline and resource risks
+- Mitigation strategies and contingency plans
+
+### **Success Metrics & Validation**
+- Key performance indicators (KPIs)
+- Success criteria and validation methods
+- Monitoring and analytics requirements
+- Continuous improvement processes
+
+Provide a complete, multi-perspective specification document that addresses all stakeholder concerns and provides clear guidance for successful implementation. Use the specialized reasoning and planning tools as needed to ensure comprehensive analysis.
+
+**Requirements**:
+- Please specify the language/framework to use
+- Please describe expected input and output formats
+
+**Quality Criteria**:
+- Include error handling
+- Testable structure
+- Extensible design
+- Performance considerations
+- Clear documentation
+- Follow best practices
+- Code readability
+- Maintainability
+
+---
+
+## Enhancement 1: Add Few-Shot Examples
+
+**Add Few-Shot examples matching the task type**:
+- Example 1: [Specific input] → [Clear output]
+- Example 2: [Different input format] → [Consistent output format]
+- Example 3: [Edge case] → [How to handle]
+
+**Guidelines**:
+- 2-3 examples (avoid over-fitting)
+- Include diverse scenarios
+- Maintain consistent output format
+
+## Enhancement 2: Output Format Specification
+
+**Output Format Specification**:
+- Separate sections with markdown headers (##, ###)
+- Use tables, bullet points, check boxes
+- Optionally label semantic components with XML tags
+  e.g.: <analysis>...</analysis>, <recommendation>...</recommendation>
+- Use response prefix to guide completion
+  e.g.: Starting with "Analysis result: " makes model complete with analysis content
+
+## Enhancement 3: Context Placement Optimization
+
+**Context Placement Optimization (Gemini 3 Recommended)**:
+
+1. **Place long context first**:
+\`\`\`
+[Tech stack info (CLAUDE.md content)]
+[Existing codebase structure]
+[Related SPEC/PLAN documents]
+
+--- Specific request below ---
+
+[User's specific question or task]
+\`\`\`
+
+2. **Structure context**:
+- Group by category (tech stack, architecture, business logic)
+- Emphasize important constraints repeatedly
+- Label clearly for reference
+
+3. **Place explicit instructions**:
+- Specific task instructions after context
+- Step-by-step guidelines (1, 2, 3...)
+- Output format examples
+
+## Enhancement 4: Prompt Decomposition
+
+**Prompt Decomposition (Sequential Chain)**:
+
+**Step 1: Information Gathering**
+\`\`\`
+Prompt: Identify required information for "**Objective**: Please generate a comprehensive specification for the following using multiple specialized..."
+Output: List of required tech stack, constraints, prerequisite tasks
+\`\`\`
+
+**Step 2: Analysis and Planning**
+\`\`\`
+Prompt: Create implementation plan based on Step 1 information.
+Input: [Step 1 output]
+Output: Phase-by-phase tasks, timeline, risks
+\`\`\`
+
+**Step 3: Detailed Task Generation**
+\`\`\`
+Prompt: Decompose Step 2 plan into actionable tasks.
+Input: [Step 2 output]
+Output: Task list (with dependencies)
+\`\`\`
+
+**Benefits**:
+- Improved output quality at each step
+- Intermediate validation possible
+- Re-run only specific step on error
+- Enhanced collaboration through structured steps
+`
+        }
+      }
+    ]
+  };
+}

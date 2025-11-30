@@ -1,296 +1,289 @@
-# Hi-AI
+# SSD-AI
 
 <div align="center">
 
-[![smithery badge](https://smithery.ai/badge/@su-record/hi-ai)](https://smithery.ai/server/@su-record/hi-ai)
+[![smithery badge](https://smithery.ai/badge/@su-record/hi-ai)](https://smithery.ai/server/ssdeanx/ssd-ai)
 [![npm version](https://badge.fury.io/js/@su-record%2Fhi-ai.svg)](https://www.npmjs.com/package/@su-record/hi-ai)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-blue.svg)](https://modelcontextprotocol.io)
-[![Tests](https://img.shields.io/badge/tests-71%20passing-brightgreen.svg)](https://github.com/su-record/hi-ai)
-[![Coverage](https://img.shields.io/badge/coverage-100%25-success.svg)](https://github.com/su-record/hi-ai)
+[![Tests](https://img.shields.io/badge/tests-122%20passing-brightgreen.svg)](https://github.com/ssdeanx/ssd-ai)
+[![Coverage](https://img.shields.io/badge/coverage-100%25-success.svg)](https://github.com/ssdeanx/ssd-ai)
 
-**Model Context Protocol 기반 AI 개발 어시스턴트**
+**AI Development Assistant based on Model Context Protocol**
 
-TypeScript + Python 지원 · 36개 전문 도구 · 지능형 메모리 관리 · 코드 분석 · 추론 프레임워크
+TypeScript + Python Support · 36 Specialized Tools · Intelligent Memory Management · Code Analysis · Reasoning Framework · Tasks Support
 
 <a href="https://glama.ai/mcp/servers/@su-record/hi-ai">
   <img width="380" height="200" src="https://glama.ai/mcp/servers/@su-record/hi-ai/badge" alt="Hi-AI MCP server" />
 </a>
 
-[English](README.en.md) | [한국어](README.md)
+[English](README.md) | [한국어](README.ko.md)
 
 </div>
 
 ---
 
-## 목차
+## Table of Contents
 
-- [개요](#개요)
-- [주요 기능](#주요-기능)
-- [v1.4.0 업데이트](#v140-업데이트)
-- [설치](#설치)
-- [도구 카탈로그](#도구-카탈로그)
-- [아키텍처](#아키텍처)
-- [성능](#성능)
-- [개발 가이드](#개발-가이드)
-- [라이선스](#라이선스)
-
----
-
-## 개요
-
-Hi-AI는 **Model Context Protocol (MCP)** 표준을 구현한 AI 개발 어시스턴트입니다. 자연어 기반 키워드 인식을 통해 38개의 전문화된 도구를 제공하며, 개발자가 복잡한 작업을 직관적으로 수행할 수 있도록 돕습니다.
-
-### 핵심 가치
-
-- **자연어 기반**: 한국어/영어 키워드로 도구를 자동으로 실행
-- **지능형 메모리**: SQLite 기반 컨텍스트 관리 및 압축
-- **다중 언어 지원**: TypeScript, JavaScript, Python 코드 분석
-- **성능 최적화**: 프로젝트 캐싱 시스템
-- **엔터프라이즈 품질**: 100% 테스트 커버리지 및 엄격한 타입 시스템
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [v1.6.0 Update](#v160-update)
+- [Installation](#installation)
+- [Tool Catalog](#tool-catalog)
+- [Architecture](#architecture)
+- [Performance](#performance)
+- [Development Guide](#development-guide)
+- [License](#license)
 
 ---
 
-## 주요 기능
+## Overview
 
-### 1. 메모리 관리 시스템
+Hi-AI is an AI development assistant that implements the **Model Context Protocol (MCP)** standard. It provides 36 specialized tools through natural language keyword recognition, helping developers perform complex tasks intuitively.
 
-세션 전반에 걸쳐 컨텍스트를 유지하고 관리하는 10개의 도구:
+### Core Values
 
-- **지능형 저장**: 카테고리별 정보 분류 및 우선순위 관리
-- **컨텍스트 압축**: 중요도 기반 컨텍스트 압축 시스템
-- **세션 복원**: 이전 작업 상태를 완벽하게 재현
-- **SQLite 기반**: 동시성 제어, 인덱싱, 트랜잭션 지원
-
-**주요 도구**:
-- `save_memory` - 장기 메모리에 정보 저장
-- `recall_memory` - 저장된 정보 검색
-- `auto_save_context` - 컨텍스트 자동 저장
-- `restore_session_context` - 세션 복원
-- `prioritize_memory` - 메모리 우선순위 관리
-
-### 2. 시맨틱 코드 분석
-
-AST 기반 코드 분석 및 탐색 도구:
-
-- **심볼 검색**: 프로젝트 전체에서 함수, 클래스, 변수 위치 파악
-- **참조 추적**: 특정 심볼의 모든 사용처 추적
-- **다중 언어**: TypeScript, JavaScript, Python 지원
-- **프로젝트 캐싱**: LRU 캐시를 통한 성능 최적화
-
-**주요 도구**:
-- `find_symbol` - 심볼 정의 검색
-- `find_references` - 심볼 참조 찾기
-
-### 3. 코드 품질 분석
-
-포괄적인 코드 메트릭 및 품질 평가:
-
-- **복잡도 분석**: Cyclomatic, Cognitive, Halstead 메트릭
-- **결합도/응집도**: 모듈 구조 건전성 평가
-- **품질 점수**: A-F 등급 시스템
-- **개선 제안**: 실행 가능한 리팩토링 방안
-
-**주요 도구**:
-- `analyze_complexity` - 복잡도 메트릭 분석
-- `validate_code_quality` - 코드 품질 평가
-- `check_coupling_cohesion` - 결합도/응집도 분석
-- `suggest_improvements` - 개선 제안
-- `apply_quality_rules` - 품질 규칙 적용
-- `get_coding_guide` - 코딩 가이드 조회
-
-### 4. 프로젝트 계획 도구
-
-체계적인 요구사항 분석 및 로드맵 생성:
-
-- **PRD 생성**: 제품 요구사항 문서 자동 생성
-- **사용자 스토리**: 수용 조건 포함 스토리 작성
-- **MoSCoW 분석**: 요구사항 우선순위화
-- **로드맵 작성**: 단계별 개발 일정 계획
-
-**주요 도구**:
-- `generate_prd` - 제품 요구사항 문서 생성
-- `create_user_stories` - 사용자 스토리 작성
-- `analyze_requirements` - 요구사항 분석
-- `feature_roadmap` - 기능 로드맵 생성
-
-### 5. 순차적 사고 도구
-
-구조화된 문제 해결 및 의사결정 지원:
-
-- **문제 분해**: 복잡한 문제를 단계별로 분해
-- **사고 체인**: 순차적 추론 과정 생성
-- **다양한 관점**: 분석적/창의적/체계적/비판적 사고
-- **실행 계획**: 작업을 실행 가능한 계획으로 변환
-
-**주요 도구**:
-- `create_thinking_chain` - 사고 체인 생성
-- `analyze_problem` - 문제 분석
-- `step_by_step_analysis` - 단계별 분석
-- `break_down_problem` - 문제 분해
-- `think_aloud_process` - 사고 과정 표현
-- `format_as_plan` - 계획 형식화
-
-### 6. 프롬프트 엔지니어링
-
-프롬프트 품질 향상 및 최적화:
-
-- **자동 강화**: 모호한 요청을 구체적으로 변환
-- **품질 평가**: 명확성, 구체성, 맥락성 점수화
-- **구조화**: 목표, 배경, 요구사항, 품질 기준
-
-**주요 도구**:
-- `enhance_prompt` - 프롬프트 강화
-- `analyze_prompt` - 프롬프트 품질 분석
-
-### 7. 브라우저 자동화
-
-웹 기반 디버깅 및 테스팅:
-
-- **콘솔 모니터링**: 브라우저 콘솔 로그 캡처
-- **네트워크 분석**: HTTP 요청/응답 추적
-- **크로스 플랫폼**: Chrome, Edge, Brave 지원
-
-**주요 도구**:
-- `monitor_console_logs` - 콘솔 로그 모니터링
-- `inspect_network_requests` - 네트워크 요청 분석
-
-### 8. UI 프리뷰
-
-코딩 전 UI 레이아웃 시각화:
-
-- **ASCII 아트**: 6가지 레이아웃 타입 지원
-- **반응형 프리뷰**: 데스크탑/모바일 뷰
-- **사전 승인**: 구조 확인 후 코딩 시작
-
-**주요 도구**:
-- `preview_ui_ascii` - ASCII UI 프리뷰
-
-### 9. 시간 유틸리티
-
-다양한 형식의 시간 조회:
-
-**주요 도구**:
-- `get_current_time` - 현재 시간 조회 (ISO, UTC, 타임존 등)
+- **Natural Language**: Execute tools automatically through Korean/English keywords
+- **Intelligent Memory**: Context management and compression using SQLite
+- **Multi-Language Support**: TypeScript, JavaScript, Python code analysis
+- **Performance Optimization**: Project caching system
+- **Enterprise Quality**: 100% test coverage and strict type system
+- **Long-Running Support**: Task management for asynchronous operations
+- **Large-Scale Data**: Cursor-based pagination
 
 ---
 
-## v1.4.0 업데이트
+## Key Features
 
-### 신규 기능 (2025-01-26)
+### 1. Memory Management System
 
-#### 2개의 고급 도구 추가
+10 tools for maintaining context across sessions:
 
-**apply_reasoning_framework** (추론 카테고리)
-- 9단계 추론 프레임워크 적용
-- 복잡한 문제의 체계적 분석
-- 논리적 종속성, 위험 평가, 가설 탐색
-- 완전성과 정밀성 보장
+- **Intelligent Storage**: Information classification and priority management by category
+- **Context Compression**: Priority-based context compression system
+- **Session Restoration**: Perfect recreation of previous work states
+- **SQLite-Based**: Concurrent control, indexing, transaction support
 
-**enhance_prompt_gemini** (프롬프트 카테고리)
-- Google Gemini API 프롬프팅 전략 적용
-- Few-Shot 예시, 출력 형식 명시화
-- 컨텍스트 최적화, 프롬프트 분해
-- 에이전트별 맞춤 개선
+**Key Tools**:
 
-#### 통합 효과
+- `save_memory` - Store information in long-term memory
+- `recall_memory` - Search stored information
+- `auto_save_context` - Automatic context saving
+- `restore_session_context` - Session restoration
+- `prioritize_memory` - Memory priority management
 
-- 총 도구 수: 34개 → 36개 (+6%)
-- 복잡한 문제 해결 능력 대폭 향상
-- 프롬프트 품질 최적화
-- Vibe 프레임워크와 완벽한 통합
+### 2. Semantic Code Analysis
+
+AST-based code analysis and navigation tools:
+
+- **Symbol Search**: Locate function, class, variable positions across projects
+- **Reference Tracking**: Track all usages of specific symbols
+- **Multi-Language**: TypeScript, JavaScript, Python support
+- **Project Caching**: Performance optimization through LRU cache
+
+**Key Tools**:
+
+- `find_symbol` - Search for symbol definitions
+- `find_references` - Find symbol references
+
+### 3. Code Quality Analysis
+
+Comprehensive code metrics and quality evaluation:
+
+- **Complexity Analysis**: Cyclomatic, Cognitive, Halstead metrics
+- **Coupling/Cohesion**: Structural soundness evaluation
+- **Quality Scores**: A-F grade system
+- **Improvement Suggestions**: Actionable refactoring recommendations
+
+**Key Tools**:
+
+- `analyze_complexity` - Complexity metric analysis
+- `validate_code_quality` - Code quality evaluation
+- `check_coupling_cohesion` - Coupling/cohesion analysis
+- `suggest_improvements` - Improvement suggestions
+- `apply_quality_rules` - Quality rule application
+- `get_coding_guide` - Coding guide lookup
+
+### 4. Project Planning Tools
+
+Systematic requirements analysis and roadmap generation:
+
+- **PRD Generation**: Automatic product requirements document creation
+- **User Stories**: Story writing including acceptance criteria
+- **MoSCoW Analysis**: Requirements prioritization
+- **Roadmap Creation**: Step-by-step development schedule planning
+
+**Key Tools**:
+- `generate_prd` - Product requirements document generation
+- `create_user_stories` - User story creation
+- `analyze_requirements` - Requirements analysis
+- `feature_roadmap` - Feature roadmap creation
+
+### 5. Sequential Thinking Tools
+
+Structured problem solving and decision making support:
+
+- **Problem Decomposition**: Break down complex problems step by step
+- **Thinking Chains**: Sequential reasoning process generation
+- **Multiple Perspectives**: Analytical/Creative/Systematic/Critical thinking
+- **Execution Plans**: Convert tasks into executable plans
+
+**Key Tools**:
+
+- `create_thinking_chain` - Thinking chain creation
+- `analyze_problem` - Problem analysis
+- `step_by_step_analysis` - Step-by-step analysis
+- `break_down_problem` - Problem decomposition
+- `think_aloud_process` - Thinking process expression
+- `format_as_plan` - Plan formatting
+
+### 6. Prompt Engineering
+
+Prompt quality improvement and optimization:
+
+- **Automatic Enhancement**: Convert vague requests to specific ones
+- **Quality Evaluation**: Score clarity, specificity, contextuality
+- **Structuring**: Goal, background, requirements, quality criteria
+
+**Key Tools**:
+
+- `enhance_prompt` - Prompt enhancement
+- `analyze_prompt` - Prompt quality analysis
+
+### 7. Browser Automation
+
+Web-based debugging and testing:
+
+- **Console Monitoring**: Browser console log capture
+- **Network Analysis**: HTTP request/response tracking
+- **Cross-Platform**: Chrome, Edge, Brave support
+
+**Key Tools**:
+
+- `monitor_console_logs` - Console log monitoring
+- `inspect_network_requests` - Network request analysis
+
+### 8. UI Preview
+
+Pre-coding UI layout visualization:
+
+- **ASCII Art**: Support for 6 layout types
+- **Responsive Preview**: Desktop/mobile views
+- **Pre-Approval**: Confirm structure before coding
+
+**Key Tools**:
+
+- `preview_ui_ascii` - ASCII UI preview
+
+### 9. Time Utilities
+
+Various format time queries:
+
+**Key Tools**:
+
+- `get_current_time` - Current time query (ISO, UTC, timezones, etc.)
+
+### 10. Tasks and Pagination Support
+
+Long-running operations and large-scale data processing:
+
+- **Tasks**: MCP 2025-11-25 experimental feature for long-running task management
+- **Pagination**: Cursor-based pagination for large dataset processing
+- **Asynchronous Operations**: Execute complex analysis tasks in background
+- **Status Tracking**: Real-time task progress monitoring
+
+**Tasks-Enabled Tools**:
+
+- `find_symbol`, `find_references` (semantic analysis)
+- `analyze_complexity`, `check_coupling_cohesion`, `validate_code_quality`, `suggest_improvements` (code quality)
+- `analyze_requirements`, `feature_roadmap`, `generate_prd` (project planning)
+- `apply_reasoning_framework`, `enhance_prompt_gemini` (reasoning and prompts)
 
 ---
 
-## v1.3.0 업데이트
+## v1.6.0 Update
 
-### 신규 기능
+### New Features (2025-01-27)
 
-#### 4개의 핵심 라이브러리
+#### Tasks Support (Experimental MCP Feature)
 
-**MemoryManager** (395줄)
-- JSON → SQLite 자동 마이그레이션
-- 인덱싱 및 트랜잭션 지원
-- 배치 작업 성능 최적화
+**Long-Running Task Management**
 
-**ContextCompressor** (408줄)
-- 컨텍스트 지능형 압축
-- 우선순위 기반 보존 (코드 > 답변 > 질문)
-- 엔티티 추출 및 키워드 감지
+- Implementation of MCP 2025-11-25 Tasks specification
+- Execute complex analysis tasks in background
+- Real-time task status tracking and monitoring
+- TTL-based automatic cleanup (default 5 minutes, max 1 hour)
 
-**ProjectCache** (160줄)
-- LRU 캐싱 시스템
-- 5분 TTL, 메모리 제한 관리
-- 대형 프로젝트 최적화
+**Tasks API**
 
-**PythonParser** (289줄)
-- Python AST 분석 지원
-- 심볼 추출 및 복잡도 계산
-- 자동 리소스 정리
+- `tasks/get` - Query task status
+- `tasks/result` - Query task result (wait until completion)
+- `tasks/list` - List all tasks (with pagination)
+- `tasks/cancel` - Cancel running task
+- `notifications/tasks/status` - Status change notifications
 
-#### Python 언어 지원
+**Task-Enabled Tools (11 tools)**
 
-- AST 기반 코드 분석
-- 심볼 검색 및 참조 추적
-- Cyclomatic 복잡도 계산
-- TypeScript + Python 하이브리드 프로젝트 지원
+- Semantic Analysis: `find_symbol`, `find_references`
+- Code Quality: `analyze_complexity`, `check_coupling_cohesion`, `validate_code_quality`, `suggest_improvements`
+- Project Planning: `analyze_requirements`, `feature_roadmap`, `generate_prd`
+- Reasoning/Prompts: `apply_reasoning_framework`, `enhance_prompt_gemini`
 
-#### 테스트 인프라
+#### Pagination Support
 
-- **71개 테스트** (100% 통과)
-- **100% 코어 라이브러리 커버리지**
-- Vitest 기반 테스트 프레임워크
-- 크리티컬 패스 검증
+**Cursor-Based Pagination**
 
-### 성능 개선
+- MCP specification compliant cursor-based implementation
+- Efficient processing of large lists
+- Enhanced security through opaque cursors
 
-| 개선 항목 | 설명 |
-|----------|------|
-| 코드 분석 | 프로젝트 캐싱을 통한 분석 속도 향상 |
-| 메모리 작업 | SQLite 트랜잭션으로 배치 작업 최적화 (O(n²) → O(n)) |
-| 컨텍스트 관리 | 지능형 압축 시스템 도입 |
-| 응답 형식 | 간결한 응답 포맷으로 전환 |
+**Supported List Operations**
 
-### 코드 품질
+- `tools/list` - Tool list (20 items by default)
+- `resources/list` - Resource list
+- `prompts/list` - Prompt list
+- `tasks/list` - Task list
 
-- **타입 시스템 중앙화**: 170줄 중복 제거
-- **메모리 도구 리팩토링**: 코드 간소화 (76줄 → 17줄)
-- **응답 형식 최적화**: 압축된 응답 포맷
-- **모듈화**: 관심사의 분리 및 재사용성 향상
+#### Integration Effects
+
+- **Asynchronous Operation Support**: Execute complex analysis in background
+- **Large-Scale Data Processing**: Improved memory efficiency through pagination
+- **Real-Time Monitoring**: Task progress tracking
+- **Enhanced User Experience**: Perform other tasks during long operations
 
 ---
 
-## 설치
+## Installation
 
-### 시스템 요구사항
+### System Requirements
 
-- Node.js 18.0 이상
-- TypeScript 5.0 이상
-- MCP 호환 클라이언트 (Claude Desktop, Cursor, Windsurf)
-- Python 3.x (Python 코드 분석 시)
+- Node.js 18.0 or higher
+- TypeScript 5.0 or higher
+- MCP-compatible client (Claude Desktop, Cursor, Windsurf)
+- Python 3.x (for Python code analysis)
 
-### 설치 방법
+### Installation Methods
 
-#### NPM 패키지
+#### NPM Package
 
 ```bash
-# 글로벌 설치
-npm install -g @su-record/hi-ai
+# Global installation
+npm install -g @ssdeanx/ssd-ai
 
-# 로컬 설치
-npm install @su-record/hi-ai
+# Local installation
+npm install @ssdeanx/ssd-ai
 ```
 
-#### Smithery 플랫폼
+#### Smithery Platform
 
 ```bash
-# 원클릭 설치
+# One-click installation
 https://smithery.ai/server/@su-record/hi-ai
 ```
 
-### MCP 클라이언트 설정
+### MCP Client Configuration
 
-Claude Desktop 또는 다른 MCP 클라이언트의 설정 파일에 추가:
+Add to your Claude Desktop or other MCP client's configuration file:
 
 ```json
 {
@@ -306,46 +299,63 @@ Claude Desktop 또는 다른 MCP 클라이언트의 설정 파일에 추가:
 
 ---
 
-## 도구 카탈로그
+## Tool Catalog
 
-### 전체 도구 목록 (36개)
+### Complete Tool List (36 tools)
 
-| 카테고리 | 도구 수 | 도구 목록 |
-|----------|---------|-----------|
-| **메모리** | 10 | save_memory, recall_memory, list_memories, search_memories, delete_memory, update_memory, auto_save_context, restore_session_context, prioritize_memory, start_session |
-| **시맨틱** | 2 | find_symbol, find_references |
-| **사고** | 6 | create_thinking_chain, analyze_problem, step_by_step_analysis, break_down_problem, think_aloud_process, format_as_plan |
-| **추론** 🆕 | 1 | **apply_reasoning_framework** - 9단계 추론 프레임워크 |
-| **코드 품질** | 6 | analyze_complexity, validate_code_quality, check_coupling_cohesion, suggest_improvements, apply_quality_rules, get_coding_guide |
-| **계획** | 4 | generate_prd, create_user_stories, analyze_requirements, feature_roadmap |
-| **프롬프트** | 3 | enhance_prompt, analyze_prompt, **enhance_prompt_gemini** 🆕 |
-| **브라우저** | 2 | monitor_console_logs, inspect_network_requests |
+| Category | Count | Tool List |
+|----------|-------|-----------|
+| **Memory** | 10 | save_memory, recall_memory, list_memories, search_memories, delete_memory, update_memory, auto_save_context, restore_session_context, prioritize_memory, start_session |
+| **Semantic** | 2 | find_symbol, find_references |
+| **Thinking** | 6 | create_thinking_chain, analyze_problem, step_by_step_analysis, break_down_problem, think_aloud_process, format_as_plan |
+| **Reasoning** | 1 | apply_reasoning_framework |
+| **Code Quality** | 6 | analyze_complexity, validate_code_quality, check_coupling_cohesion, suggest_improvements, apply_quality_rules, get_coding_guide |
+| **Planning** | 4 | generate_prd, create_user_stories, analyze_requirements, feature_roadmap |
+| **Prompt** | 2 | enhance_prompt, analyze_prompt |
+| **Browser** | 2 | monitor_console_logs, inspect_network_requests |
 | **UI** | 1 | preview_ui_ascii |
-| **시간** | 1 | get_current_time |
+| **Time** | 1 | get_current_time |
 
-### 키워드 매핑 예시
+### Tasks-Enabled Tools (11 tools)
 
-#### 메모리 도구
+The following tools support long-running operations through Tasks:
 
-| 도구 | 한국어 | 영어 |
-|------|--------|------|
-| save_memory | 기억해, 저장해 | remember, save this |
-| recall_memory | 떠올려, 기억나 | recall, remind me |
-| auto_save_context | 커밋, 저장 | commit, checkpoint |
+- **Semantic Analysis**: `find_symbol`, `find_references`
+- **Code Quality**: `analyze_complexity`, `check_coupling_cohesion`, `validate_code_quality`, `suggest_improvements`
+- **Project Planning**: `analyze_requirements`, `feature_roadmap`, `generate_prd`
+- **Reasoning/Prompts**: `apply_reasoning_framework`, `enhance_prompt_gemini`
 
-#### 코드 분석 도구
+### Keyword Mapping Examples
 
-| 도구 | 한국어 | 영어 |
-|------|--------|------|
-| find_symbol | 함수 찾아, 클래스 어디 | find function, where is |
-| analyze_complexity | 복잡도, 복잡한지 | complexity, how complex |
-| validate_code_quality | 품질, 리뷰 | quality, review |
+#### Memory Tools
+
+| Tool | English | Korean |
+|------|---------|--------|
+| save_memory | remember, save this | 기억해, 저장해 |
+| recall_memory | recall, remind me | 떠올려, 기억나 |
+| auto_save_context | commit, checkpoint | 커밋, 저장 |
+
+#### Code Analysis Tools
+
+| Tool | English | Korean |
+|------|---------|--------|
+| find_symbol | find function, where is | 함수 찾아, 클래스 어디 |
+| analyze_complexity | complexity, how complex | 복잡도, 복잡한지 |
+| validate_code_quality | quality, review | 품질, 리뷰 |
+
+#### Tasks Tools
+
+| Tool | English | Korean |
+|------|---------|--------|
+| tasks/get | task status, progress | 작업 상태, 진행 상황 |
+| tasks/result | get result, wait for completion | 결과 가져와, 완료될 때까지 |
+| tasks/cancel | cancel task, stop | 작업 취소, 중지해 |
 
 ---
 
-## 아키텍처
+## Architecture
 
-### 시스템 구조
+### System Structure
 
 ```mermaid
 graph TB
@@ -354,7 +364,7 @@ graph TB
     end
 
     subgraph "MCP Server"
-        B[Hi-AI v1.4.0]
+        B[Hi-AI v1.6.0]
     end
 
     subgraph "Core Libraries"
@@ -362,6 +372,7 @@ graph TB
         C2[ContextCompressor]
         C3[ProjectCache]
         C4[PythonParser]
+        C5[TaskManager]
     end
 
     subgraph "Tool Categories"
@@ -374,86 +385,90 @@ graph TB
         D7[Browser Tools x2]
         D8[UI Tools x1]
         D9[Time Tools x1]
+        D10[Tasks Support]
     end
 
     subgraph "Data Layer"
         E1[(SQLite Database)]
         E2[Project Files]
+        E3[Task Store]
     end
 
     A <--> B
-    B --> C1 & C2 & C3 & C4
-    B --> D1 & D2 & D3 & D4 & D5 & D6 & D7 & D8 & D9
+    B --> C1 & C2 & C3 & C4 & C5
+    B --> D1 & D2 & D3 & D4 & D5 & D6 & D7 & D8 & D9 & D10
     C1 --> E1
     C3 --> E2
     C4 --> E2
+    C5 --> E3
     D1 --> C1 & C2
     D2 --> C3 & C4
     D4 --> C4
+    D10 --> C5
 ```
 
-### 핵심 컴포넌트
+### Core Components
 
-#### MemoryManager
-- **역할**: 영구 메모리 저장소 관리
-- **기술**: SQLite, better-sqlite3
-- **기능**: CRUD, 검색, 우선순위, 마이그레이션
-- **최적화**: WAL 모드, 인덱싱, Prepared Statements
+#### TaskManager
+- **Role**: Lifecycle management of long-running tasks
+- **Features**: Task creation, status tracking, result storage, TTL management
+- **States**: working, input_required, completed, failed, cancelled
+- **Notifications**: Real-time status change notifications
 
-#### ContextCompressor
-- **역할**: 컨텍스트 압축 관리
-- **알고리즘**: 우선순위 기반 압축
-- **기능**: 중요도에 따른 선택적 보존
+#### Pagination System
+- **Role**: Efficient processing of large list data
+- **Method**: Cursor-based pagination
+- **Security**: Prevent data exposure through opaque cursors
 
-#### ProjectCache
-- **역할**: ts-morph 프로젝트 캐싱
-- **전략**: LRU 알고리즘
-- **기능**: 반복 분석 성능 향상
-- **제한**: 100MB/프로젝트, 200MB 전체
+### Data Flow
 
-#### PythonParser
-- **역할**: Python 코드 AST 분석
-- **방법**: subprocess 실행
-- **기능**: 심볼 추출, 복잡도 계산
-- **안전**: 타임아웃, 자동 정리
-
-### 데이터 플로우
-
-```
-사용자 입력 (자연어)
+```bash
+User Input (Natural Language)
     ↓
-키워드 매칭 (도구 선택)
+Keyword Matching (Tool Selection)
     ↓
-도구 실행
+Tasks Support Check
     ↓
-라이브러리 호출 (필요시)
+Normal Execution or Task Creation
     ↓
-결과 포맷팅 (압축)
+Asynchronous Execution (Tasks)
     ↓
-MCP 응답 반환
+Status Polling or Real-time Notifications
+    ↓
+Result Return
 ```
 
 ---
 
-## 성능
+## Performance
 
-### 주요 최적화
+### Major Optimizations
 
-#### 프로젝트 캐싱
-- LRU 캐시를 통한 반복 분석 성능 향상
-- 5분 TTL로 최신 상태 유지
-- 메모리 제한을 통한 리소스 관리
+#### Project Caching
 
-#### 메모리 작업
-- SQLite 트랜잭션으로 배치 작업 최적화
-- 시간 복잡도 개선: O(n²) → O(n)
-- 인덱싱을 통한 빠른 조회
+- Performance improvement for repeated analysis through LRU cache
+- Maintain latest state with 5-minute TTL
+- Resource management through memory limits
 
-#### 응답 형식
-- 간결한 응답 포맷으로 전환
-- 핵심 정보 중심의 출력
+#### Memory Operations
 
-**v1.2.0 응답 예시**:
+- Batch operation optimization through SQLite transactions
+- Time complexity improvement: O(n²) → O(n)
+- Fast lookup through indexing
+
+#### Tasks Optimization
+
+- Improved UI responsiveness through background execution
+- Prevent memory leaks through TTL-based automatic cleanup
+- Efficient monitoring through status-based polling
+
+#### Response Format
+
+- Switch to concise response format
+- Output focused on core information
+
+**v1.5.0 Response Example**:
+
 ```json
 {
   "action": "save_memory",
@@ -466,101 +481,102 @@ MCP 응답 반환
 }
 ```
 
-**v1.3.0 응답 예시**:
-```
+**v1.6.0 Response Example**:
+
+```bash
 ✓ Saved: test-key
 Category: general
 ```
 
 ---
 
-## 개발 가이드
+## Development Guide
 
-### 환경 설정
+### Environment Setup
 
 ```bash
-# 리포지토리 클론
-git clone https://github.com/su-record/hi-ai.git
-cd hi-ai
+# Clone repository
+git clone https://github.com/ssdeanx/ssd-ai.git
+cd ssd-ai
 
-# 의존성 설치
+# Install dependencies
 npm install
 
-# 빌드
+# Build
 npm run build
 
-# 개발 모드
+# Development mode
 npm run dev
 ```
 
-### 테스트
+### Testing
 
 ```bash
-# 전체 테스트 실행
+# Run all tests
 npm test
 
-# Watch 모드
+# Watch mode
 npm run test:watch
 
-# UI 모드
+# UI mode
 npm run test:ui
 
-# 커버리지 리포트
+# Coverage report
 npm run test:coverage
 ```
 
-### 코드 스타일
+### Code Style
 
-- **TypeScript**: strict 모드
-- **타입**: `src/types/tool.ts` 사용
-- **테스트**: 100% 커버리지 유지
-- **커밋**: Conventional Commits 형식
+- **TypeScript**: strict mode
+- **Types**: Use `src/types/tool.ts`
+- **Tests**: Maintain 100% coverage
+- **Commits**: Conventional Commits format
 
-### 새 도구 추가
+### Adding New Tools
 
-1. `src/tools/category/` 디렉토리에 파일 생성
-2. `ToolDefinition` 인터페이스 구현
-3. `src/index.ts`에 도구 등록
-4. `tests/unit/` 디렉토리에 테스트 작성
-5. README 업데이트
+1. Create file in `src/tools/category/` directory
+2. Implement `ToolDefinition` interface
+3. Register tool in `src/index.ts`
+4. Write tests in `tests/unit/` directory
+5. Update README
 
 ### Pull Request
 
-1. 기능 브랜치 생성: `feature/tool-name`
-2. 테스트 작성 및 통과 확인
-3. 빌드 성공 확인
-4. PR 생성 및 리뷰 요청
+1. Create feature branch: `feature/tool-name`
+2. Write and pass tests
+3. Confirm successful build
+4. Create PR and request review
 
 ---
 
-## 기여자
+## Contributors
 
-<a href="https://github.com/su-record/hi-ai/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=su-record/hi-ai" />
+<a href="https://github.com/ssdeanx/ssd-ai/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=ssdeanx/ssd-ai" />
 </a>
 
-### 특별 감사
+### Special Thanks
 
-- **[Smithery](https://smithery.ai)** - MCP 서버 배포 및 원클릭 설치 플랫폼 제공
-
----
-
-## 라이선스
-
-MIT License - 자유롭게 사용, 수정, 배포 가능
+- **[Smithery](https://smithery.ai)** - MCP server deployment and one-click installation platform
 
 ---
 
-## 인용
+## License
 
-이 프로젝트를 연구나 상업적 용도로 사용하실 경우:
+MIT License - Free to use, modify, and distribute
+
+---
+
+## Citation
+
+If you use this project for research or commercial purposes:
 
 ```bibtex
 @software{hi-ai2024,
-  author = {Su},
+  author = {ssdeanx},
   title = {Hi-AI: Natural Language MCP Server for AI-Assisted Development},
   year = {2024},
-  version = {1.4.0},
+  version = {1.6.0},
   url = {https://github.com/su-record/hi-ai}
 }
 ```
@@ -575,9 +591,9 @@ MIT License - 자유롭게 사용, 수정, 배포 가능
 
 <br>
 
-**Hi-AI v1.4.0**
+**Hi-AI v1.6.0**
 
-9단계 추론 프레임워크 · Gemini 프롬프팅 전략 · 36개 전문 도구 · 100% 테스트 커버리지
+Tasks Support · Cursor-Based Pagination · 36 Specialized Tools · 122 Tests · 100% Coverage
 
 Made with ❤️ by [Su](https://github.com/su-record)
 

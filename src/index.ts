@@ -33,12 +33,15 @@ import { browserDevelopmentDefinition, getBrowserDevelopmentPrompt } from './too
 import { codeConventionsDefinition, getCodeConventionsPrompt } from './tools/prompt/codeConventions.js';
 import { codeReviewDefinition, getCodeReviewPrompt } from './tools/prompt/codeReview.js';
 import { debugAssistantDefinition, getDebugAssistantPrompt } from './tools/prompt/debugAssistant.js';
+import { documentationDefinition, getDocumentationPrompt } from './tools/prompt/documentation.js';
 import { getMemoryManagementPrompt, memoryManagementDefinition } from './tools/prompt/memoryManagement.js';
 import { getProjectPlanningPrompt, projectPlanningDefinition } from './tools/prompt/projectPlanning.js';
 import { getPromptEnhancementPrompt, promptEnhancementDefinition } from './tools/prompt/promptEnhancement.js';
 import { getReasoningFrameworkPrompt, reasoningFrameworkDefinition } from './tools/prompt/reasoningFramework.js';
 import { getSemanticAnalysisPrompt, semanticAnalysisDefinition } from './tools/prompt/semanticAnalysis.js';
 import { getSequentialThinkingPrompt, sequentialThinkingDefinition } from './tools/prompt/sequentialThinking.js';
+import { getSpecGenerationPrompt, specGenerationDefinition } from './tools/prompt/specGeneration.js';
+import { getTestingPrompt, testingDefinition } from './tools/prompt/testing.js';
 import { getTimeUtilitiesPrompt, timeUtilitiesDefinition } from './tools/prompt/timeUtilities.js';
 import { getUiPreviewPrompt, uiPreviewDefinition } from './tools/prompt/uiPreview.js';
 
@@ -84,8 +87,6 @@ import { previewUiAscii, previewUiAsciiDefinition } from './tools/ui/previewUiAs
 import { paginateItems } from './types/pagination.js';
 
 // Import task manager
-import { taskManager } from './lib/taskManager.js';
-import type { Task, TaskParams } from './types/task.js';
 
 // Tool definition interface with optional task support
 interface ToolDefinition {
@@ -157,27 +158,7 @@ const tools: ToolDefinition[] = [
   previewUiAsciiDefinition
 ];
 
-// Mark tools that support task augmentation (long-running operations)
-const TASK_ENABLED_TOOLS = new Set([
-  'find_symbol',
-  'find_references',
-  'analyze_complexity',
-  'check_coupling_cohesion',
-  'validate_code_quality',
-  'suggest_improvements',
-  'analyze_requirements',
-  'feature_roadmap',
-  'generate_prd',
-  'apply_reasoning_framework',
-  'enhance_prompt_gemini',
-]);
-
-// Add task support metadata to tool definitions
-tools.forEach((tool) => {
-  if (tool.name && TASK_ENABLED_TOOLS.has(tool.name)) {
-    tool.execution = { taskSupport: 'optional' };
-  }
-});
+// Task support temporarily disabled
 
 function createServer(): McpServer {
   const server: McpServer = new McpServer(
@@ -198,19 +179,6 @@ function createServer(): McpServer {
           listChanged: true
         },
         completions: {},
-        // Tasks capability (experimental - MCP 2025-11-25)
-        // Using experimental namespace as tasks are not yet in SDK types
-        experimental: {
-          tasks: {
-            list: {},
-            cancel: {},
-            requests: {
-              tools: {
-                call: {}
-              }
-            }
-          }
-        }
       },
     }
   );
@@ -234,21 +202,13 @@ function createServer(): McpServer {
     codeConventionsDefinition,
     promptEnhancementDefinition,
     reasoningFrameworkDefinition,
+    specGenerationDefinition,
+    documentationDefinition,
+    testingDefinition,
     uiPreviewDefinition
   ];
 
-  // Register task status change callback for notifications
-  taskManager.onStatusChange(async (task: Task) => {
-    try {
-      // Use type assertion for experimental tasks notification
-      await server.server.notification({
-        method: 'notifications/tasks/status',
-        params: task as unknown as Record<string, unknown>
-      });
-    } catch (error) {
-      console.error('Failed to send task status notification:', error);
-    }
-  });
+  // Task notifications disabled - experimental feature temporarily removed
 
   // ========================================
   // TOOLS - with pagination support
@@ -428,6 +388,62 @@ function createServer(): McpServer {
               total: 4
             }
           };
+        } else if (promptName === specGenerationDefinition.name && argument.name === 'spec_type') {
+          return {
+            completion: {
+              values: ['api', 'feature', 'system', 'ui', 'data', 'security', 'architecture', 'integration'],
+              hasMore: false,
+              total: 8
+            }
+          };
+        } else if (promptName === specGenerationDefinition.name && argument.name === 'stakeholders') {
+          return {
+            completion: {
+              values: ['development-team', 'product-owner', 'end-users', 'business-analysts', 'qa-engineers', 'devops-team', 'security-team'],
+              hasMore: false,
+              total: 7
+            }
+          };
+        } else if (promptName === documentationDefinition.name && argument.name === 'doc_type') {
+          return {
+            completion: {
+              values: ['api', 'readme', 'user-guide', 'technical', 'deployment', 'troubleshooting', 'architecture', 'integration'],
+              hasMore: false,
+              total: 8
+            }
+          };
+        } else if (promptName === documentationDefinition.name && argument.name === 'audience') {
+          return {
+            completion: {
+              values: ['developers', 'users', 'administrators', 'stakeholders', 'testers', 'devops', 'security-team'],
+              hasMore: false,
+              total: 7
+            }
+          };
+        } else if (promptName === documentationDefinition.name && argument.name === 'format') {
+          return {
+            completion: {
+              values: ['markdown', 'html', 'pdf', 'structured', 'wiki', 'api-docs', 'interactive'],
+              hasMore: false,
+              total: 7
+            }
+          };
+        } else if (promptName === testingDefinition.name && argument.name === 'test_type') {
+          return {
+            completion: {
+              values: ['unit', 'integration', 'e2e', 'performance', 'security', 'api', 'ui', 'mobile', 'accessibility', 'compatibility'],
+              hasMore: false,
+              total: 10
+            }
+          };
+        } else if (promptName === testingDefinition.name && argument.name === 'quality_requirements') {
+          return {
+            completion: {
+              values: ['high-reliability', 'gdpr-compliant', 'wcag-accessible', 'performance-critical', 'security-first', 'user-centric'],
+              hasMore: false,
+              total: 6
+            }
+          };
         }
       }
       // Default empty completion
@@ -541,6 +557,27 @@ function createServer(): McpServer {
         const complexityLevel = args.complexity_level as string;
         const decisionCriteria = args.decision_criteria as string;
         return getReasoningFrameworkPrompt(reasoningTask, problemContext, reasoningApproach, complexityLevel, decisionCriteria);
+      } else if (name === specGenerationDefinition.name) {
+        const specType = args.spec_type as string;
+        const specSubject = args.spec_subject as string;
+        const context = args.context as string;
+        const stakeholders = args.stakeholders as string;
+        const constraints = args.constraints as string;
+        return getSpecGenerationPrompt(specType, specSubject, context, stakeholders, constraints);
+      } else if (name === documentationDefinition.name) {
+        const docType = args.doc_type as string;
+        const docSubject = args.doc_subject as string;
+        const audience = args.audience as string;
+        const context = args.context as string;
+        const format = args.format as string;
+        return getDocumentationPrompt(docType, docSubject, audience, context, format);
+      } else if (name === testingDefinition.name) {
+        const testType = args.test_type as string;
+        const systemUnderTest = args.system_under_test as string;
+        const testingContext = args.testing_context as string;
+        const qualityRequirements = args.quality_requirements as string;
+        const constraints = args.constraints as string;
+        return getTestingPrompt(testType, systemUnderTest, testingContext, qualityRequirements, constraints);
       } else if (name === uiPreviewDefinition.name) {
         const uiDescription = args.ui_description as string;
         const designContext = args.design_context as string;
@@ -558,16 +595,8 @@ function createServer(): McpServer {
   });
 
   // ========================================
-  // TOOLS - call tool handler (with task support)
+  // TOOLS - call tool handler
   // ========================================
-  interface CallToolRequestParams {
-    name: string;
-    arguments?: unknown;
-    task?: TaskParams;
-    _meta?: {
-      progressToken?: string | number;
-    };
-  }
 
   // Tool execution function
   async function executeToolCall(name: string, args: unknown): Promise<CallToolResult> {
@@ -669,47 +698,10 @@ function createServer(): McpServer {
     }
   }
 
-  // Type assertion needed because tasks feature returns CreateTaskResult which SDK doesn't know about
-  server.server.setRequestHandler(CallToolRequestSchema, async (request: { params: CallToolRequestParams }, extra: unknown): Promise<CallToolResult> => {
-    const { name, arguments: args, task: taskParams, _meta } = request.params;
+  server.server.setRequestHandler(CallToolRequestSchema, async (request): Promise<CallToolResult> => {
+    const { name, arguments: args } = request.params;
 
     try {
-      // Check if this is a task-augmented request
-      if (taskParams) {
-        // Verify the tool supports task augmentation
-        const toolDef = tools.find(t => t.name === name);
-        if (!toolDef) {
-          throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
-        }
-
-        const taskSupport = toolDef.execution?.taskSupport;
-        if (taskSupport === 'forbidden') {
-          throw new McpError(ErrorCode.InvalidRequest, `Tool '${name}' does not support task augmentation`);
-        }
-
-        if (!TASK_ENABLED_TOOLS.has(name)) {
-          throw new McpError(ErrorCode.InvalidRequest, `Tool '${name}' does not support task augmentation`);
-        }
-
-        // Create a task for this tool call
-        const createResult = taskManager.createTask(
-          'tools/call',
-          { name, arguments: args },
-          taskParams,
-          _meta?.progressToken
-        );
-
-        // Execute the tool asynchronously
-        taskManager.executeTask(createResult.task.taskId, async () => {
-          return await executeToolCall(name, args);
-        });
-
-        // Return the task creation result immediately
-        // Cast to CallToolResult for SDK compatibility (tasks are experimental)
-        return createResult as unknown as CallToolResult;
-      }
-
-      // Normal (non-task) tool execution
       return await executeToolCall(name, args);
     } catch (error) {
       if (error instanceof McpError) throw error;
@@ -717,130 +709,7 @@ function createServer(): McpServer {
     }
   });
 
-  // ========================================
-  // TASKS - handlers for task management
-  // ========================================
-
-  // tasks/get - Get task status
-  interface TasksGetRequestParams {
-    taskId: string;
-  }
-
-  // Custom handler registration for experimental tasks/get method
-  (server.server as any).setRequestHandler(
-    { method: 'tasks/get' },
-    async (request: { params: TasksGetRequestParams }): Promise<Record<string, unknown>> => {
-      const { taskId } = request.params;
-
-      const task = taskManager.getTask({ taskId });
-      if (!task) {
-        throw new McpError(ErrorCode.InvalidParams, `Failed to retrieve task: Task not found`);
-      }
-
-      return task as unknown as Record<string, unknown>;
-    }
-  );
-
-  // tasks/result - Get task result (blocks until terminal status)
-  interface TasksResultRequestParams {
-    taskId: string;
-  }
-
-  // Custom handler registration for experimental tasks/result method
-  (server.server as any).setRequestHandler(
-    { method: 'tasks/result' },
-    async (request: { params: TasksResultRequestParams }): Promise<Record<string, unknown>> => {
-      const { taskId } = request.params;
-
-      // Poll until task reaches terminal status
-      const maxWaitTime = 5 * 60 * 1000; // 5 minutes max wait
-      const pollInterval = 100; // 100ms polling
-      const startTime = Date.now();
-
-      while (Date.now() - startTime < maxWaitTime) {
-        const taskResult = taskManager.getTaskResult({ taskId });
-
-        if (!taskResult) {
-          throw new McpError(ErrorCode.InvalidParams, `Failed to retrieve task: Task not found`);
-        }
-
-        if (taskResult.isTerminal) {
-          if (taskResult.error) {
-            throw new McpError(
-              taskResult.error.code as ErrorCode,
-              taskResult.error.message,
-              taskResult.error.data
-            );
-          }
-
-          // Add related task metadata to result
-          const result = taskResult.result as CallToolResult;
-          return {
-            ...result,
-            _meta: {
-              ...(result._meta || {}),
-              'io.modelcontextprotocol/related-task': { taskId }
-            }
-          } as unknown as Record<string, unknown>;
-        }
-
-        // Wait before next poll
-        await new Promise(resolve => setTimeout(resolve, pollInterval));
-      }
-
-      throw new McpError(ErrorCode.InternalError, `Task timed out waiting for result`);
-    }
-  );
-
-  // tasks/list - List all tasks with pagination
-  interface TasksListRequestParams {
-    cursor?: string;
-  }
-
-  // Custom handler registration for experimental tasks/list method
-  (server.server as any).setRequestHandler(
-    { method: 'tasks/list' },
-    async (request: { params?: TasksListRequestParams }): Promise<Record<string, unknown>> => {
-      const cursor = request.params?.cursor;
-
-      try {
-        return taskManager.listTasks({ cursor }) as unknown as Record<string, unknown>;
-      } catch (error) {
-        if (error instanceof Error && error.message.includes('cursor')) {
-          throw new McpError(ErrorCode.InvalidParams, `Invalid cursor`);
-        }
-        throw error;
-      }
-    }
-  );
-
-  // tasks/cancel - Cancel a task
-  interface TasksCancelRequestParams {
-    taskId: string;
-  }
-
-  // Custom handler registration for experimental tasks/cancel method
-  (server.server as any).setRequestHandler(
-    { method: 'tasks/cancel' },
-    async (request: { params: TasksCancelRequestParams }): Promise<Record<string, unknown>> => {
-      const { taskId } = request.params;
-
-      try {
-        const task = await taskManager.cancelTask({ taskId });
-        if (!task) {
-          throw new McpError(ErrorCode.InvalidParams, `Failed to cancel task: Task not found`);
-        }
-        return task as unknown as Record<string, unknown>;
-      } catch (error) {
-        if (error instanceof Error) {
-          if (error.message.includes('terminal status')) {
-            throw new McpError(ErrorCode.InvalidParams, error.message);
-          }
-        }
-        throw error;
-      }
-    }
-  );
+  // Tasks handlers disabled - experimental feature temporarily removed
 
   return server;
 }
@@ -859,13 +728,11 @@ async function main(): Promise<void> {
 
     // Handle process termination gracefully
     process.on('SIGINT', async () => {
-      taskManager.dispose();
       await server.close();
       process.exit(0);
     });
 
     process.on('SIGTERM', async () => {
-      taskManager.dispose();
       await server.close();
       process.exit(0);
     });
@@ -898,7 +765,6 @@ async function main(): Promise<void> {
     // Handle process termination gracefully
     process.on('SIGINT', async () => {
       console.log('Shutting down MCP server...');
-      taskManager.dispose();
       transport.close();
       await server.close();
       process.exit(0);
@@ -906,7 +772,6 @@ async function main(): Promise<void> {
 
     process.on('SIGTERM', async () => {
       console.log('Shutting down MCP server...');
-      taskManager.dispose();
       transport.close();
       await server.close();
       process.exit(0);
