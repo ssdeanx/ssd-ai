@@ -83,7 +83,8 @@ app.post('/mcp', async (req, res) => {
     await transport.handleRequest(req, res, req.body);
 });
 
-const port = parseInt(process.env.PORT || '3000');
+// Prefer deterministic config: pass the port as a CLI flag or set via your deployment's configuration.
+const port = 3000; // avoid runtime env vars; use CLI flag `--port=3000` or Smithery `configSchema` instead
 app.listen(port, () => {
     console.log(`Demo MCP Server running on http://localhost:${port}/mcp`);
 }).on('error', error => {

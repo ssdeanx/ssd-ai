@@ -19,11 +19,14 @@
     "hi-ai": "dist/index.js"
   },
   "scripts": {
-    "dev": "npm run build && cross-env MCP_TRANSPORT=http node dist/index.js",
-    "dev:stdio": "npm run build && cross-env MCP_TRANSPORT=stdio node dist/index.js",
-    "start:http": "cross-env MCP_TRANSPORT=http npm run build && node dist/index.js",
-    "start:stdio": "cross-env MCP_TRANSPORT=stdio npm run build && node dist/index.js",
+    "dev": "npm run build && node dist/index.js --transport=http --port=3000 --hostname=localhost",
+    "dev:stdio": "npm run build && node dist/index.js --transport=stdio",
+    "start:http": "npm run build && node dist/index.js --transport=http --port=3000 --hostname=localhost",
+    "start:stdio": "npm run build && node dist/index.js --transport=stdio",
     "build": "tsc",
+    "build:http": "npx smithery build",
+    "dev:smithery": "npx smithery dev",
+    "start:http:smithery": "node .smithery/index.cjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
@@ -50,7 +53,8 @@
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.25.1",
-    "@smithery/sdk": "^1.7.5",
+    "@smithery/sdk": "^2.1.0",
+    "zod": "^4.2.1",
     "@types/better-sqlite3": "^7.6.13",
     "@types/glob": "^9.0.0",
     "better-sqlite3": "^12.5.0",
@@ -63,9 +67,8 @@
   "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/node": "^22.19.3",
-    "@vitest/ui": "^4.0.15",
+    "@vitest/ui": "^4.0.16",
     "biome": "^0.3.3",
-    "cross-env": "^10.1.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.16"
   }

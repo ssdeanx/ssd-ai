@@ -3,8 +3,8 @@ AGENTS.md — Guidance for automated coding agents
 Build / Run / Test commands
 
 - Build: `npm run build` (runs `tsc`)
-- Dev (stdio): `npm run dev:stdio` or `npm run dev` (sets `MCP_TRANSPORT`)
-- Start HTTP server: `npm run start:http` or set `MCP_TRANSPORT=http` then `npm run build && node dist/index.js`
+- Dev (stdio): `npm run dev:stdio` or `npm run dev` (use CLI flags: `--transport=stdio`)
+- Start HTTP server: `npm run start:http` (script passes CLI flags `--transport=http --port=3000 --hostname=localhost`)
 - Run all tests: `npm run test` (uses Vitest)
 - Run single test file: `npx vitest run <path/to/testfile>` or `npm run test -- <path/to/testfile>` (example: `npx vitest run src/__tests__/taskManager.test.ts`)
 - Watch tests: `npm run test:watch`; UI: `npm run test:ui`; Coverage: `npm run test:coverage`

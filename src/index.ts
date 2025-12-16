@@ -47,6 +47,7 @@ import { getUiPreviewPrompt, uiPreviewDefinition } from './tools/prompt/uiPrevie
 
 // Semantic code analysis tools (Serena-inspired)
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { z } from 'zod';
 import { inspectNetworkRequests, inspectNetworkRequestsDefinition } from './tools/browser/inspectNetworkRequests.js';
 import { monitorConsoleLogs, monitorConsoleLogsDefinition } from './tools/browser/monitorConsoleLogs.js';
 import { analyzeComplexity, analyzeComplexityDefinition } from './tools/convention/analyzeComplexity.js';
@@ -160,7 +161,7 @@ const tools: ToolDefinition[] = [
 
 // Task support temporarily disabled
 
-function createServer(): McpServer {
+function buildServer(config?: unknown): McpServer {
   const server: McpServer = new McpServer(
     {
       name: 'Hi-AI',
@@ -717,11 +718,33 @@ function createServer(): McpServer {
 // Default export for Smithery platform
 
 
-async function main(): Promise<void> {
-  const server: McpServer = createServer();
+function parseCliArgs(argv: string[]): { transport?: string; port?: number; hostname?: string } {
+  const args: Record<string, string> = {};
+  argv.forEach((arg) => {
+    if (!arg.startsWith('--')) return;
+    const [key, value] = arg.slice(2).split('=', 2);
+    args[key] = value ?? 'true';
+  });
+  return {
+    transport: args['transport'],
+    port: args['port'] ? parseInt(args['port'], 10) : undefined,
+    hostname: args['hostname']
+  };
+}
 
-  // Choose transport based on environment variable
-  const transportType = process.env.MCP_TRANSPORT || 'http';
+async function main(): Promise<void> {
+  // This project enforces a no-environment-variables policy for runtime configuration.
+  // Use CLI flags when running locally, or rely on Smithery's session `config` when deployed.
+  // Examples:
+  //   node dist/index.js --transport=stdio
+  //   node dist/index.js --transport=http --port=3000 --hostname=localhost
+
+  const cli = parseCliArgs(process.argv.slice(2));
+  const transportType = cli.transport || 'stdio'; // default to STDIO for local runs
+  const port = cli.port ?? 3000;
+  const hostname = cli.hostname ?? 'localhost';
+
+  const server: McpServer = buildServer();
 
   if (transportType === 'stdio') {
     const transport = new StdioServerTransport();
@@ -756,8 +779,8 @@ async function main(): Promise<void> {
   } else {
     // HTTP transport with custom transport
     const transport = new HttpServerTransport({
-      port: parseInt('3000'),
-      hostname: 'localhost',
+      port,
+      hostname,
       allowedOrigins: ['http://localhost:*', 'https://localhost:*'],
       allowedHosts: ['127.0.0.1', 'localhost']
     });
@@ -786,13 +809,18 @@ async function main(): Promise<void> {
   }
 }
 
-// Export for Smithery platform (stdio only)
-export default async function (_: { sessionId: string; config: any }): Promise<McpServer> {
-  // Create and connect the server for the Smithery platform using stdio
-  const server = createServer();
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-  return server;
+// Export config schema for Smithery UI and default exported createServer function
+export const configSchema = z.object({
+  sessionId: z.string().optional(),
+  enableAutoSave: z.boolean().optional().default(true).describe('Automatically save session context'),
+  defaultPriority: z.enum(['low', 'medium', 'high', 'critical']).optional().default('medium').describe('Default priority for tasks')
+});
+
+export default function createServer({ config }: { config?: z.infer<typeof configSchema> }) {
+  // Smithery expects the default export to return the MCP server object (not connected to a transport).
+  // The Smithery CLI will import this function and handle running the HTTP transport.
+  const server = buildServer(config as any);
+  return server.server;
 }
 
 // Only run main when not being imported by Smithery
