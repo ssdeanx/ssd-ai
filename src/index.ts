@@ -756,8 +756,8 @@ async function main(): Promise<void> {
   } else {
     // HTTP transport with custom transport
     const transport = new HttpServerTransport({
-      port: parseInt(process.env.MCP_PORT || '3000'),
-      hostname: process.env.MCP_HOSTNAME || 'localhost',
+      port: parseInt('3000'),
+      hostname: 'localhost',
       allowedOrigins: ['http://localhost:*', 'https://localhost:*'],
       allowedHosts: ['127.0.0.1', 'localhost']
     });
