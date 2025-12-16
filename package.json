@@ -71,5 +71,8 @@
     "biome": "^0.3.3",
     "typescript": "^5.9.3",
     "vitest": "^4.0.16"
+  },
+  "overrides": {
+    "zod": "^4.2.1"
   }
 }
