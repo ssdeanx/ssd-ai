@@ -19,7 +19,7 @@ export class HttpServerTransport {
 
   constructor(options: HttpTransportOptions = {}) {
     this.options = {
-      port: 3000,
+      port: 8081,
       hostname: 'localhost',
       allowedOrigins: ['http://localhost:*', 'https://localhost:*'],
       allowedHosts: ['127.0.0.1', 'localhost'],

@@ -28,4 +28,8 @@ COPY . .
 # Build the application
 RUN npm run build
 
-CMD ["node", "dist/index.js"]
+# Default port that Smithery sets (8081) and bind to all interfaces for container
+ENV PORT=8081
+
+# Start in HTTP transport mode, bind to 0.0.0.0 so container is reachable
+CMD ["node", "dist/index.js", "--transport=http", "--port=8081", "--hostname=0.0.0.0"]

@@ -741,7 +741,7 @@ async function main(): Promise<void> {
 
   const cli = parseCliArgs(process.argv.slice(2));
   const transportType = cli.transport || 'stdio'; // default to STDIO for local runs
-  const port = cli.port ?? 3000;
+  const port = cli.port ?? (process.env.PORT ? parseInt(process.env.PORT, 10) : 8081);
   const hostname = cli.hostname ?? 'localhost';
 
   const server: McpServer = buildServer();
