@@ -73,6 +73,66 @@ export class HttpServerTransport {
   }
 
   private setupRoutes() {
+    // Well-known: MCP session configuration schema
+    this.app.get('/.well-known/mcp-config', (req, res) => {
+      const host = req.get('host') || 'localhost';
+      const schema = {
+        $schema: 'http://json-schema.org/draft-07/schema#',
+        $id: `https://${host}/.well-known/mcp-config`,
+        title: 'MCP Session Configuration',
+        description: 'Configuration for connecting to this MCP server',
+        'x-query-style': 'dot+bracket',
+        type: 'object',
+        properties: {
+          enableAutoSave: {
+            type: 'boolean',
+            title: 'Enable Auto Save',
+            description: 'Automatically save session context between interactions',
+            default: true
+          },
+          defaultPriority: {
+            type: 'string',
+            title: 'Default Task Priority',
+            enum: ['low', 'medium', 'high', 'critical'],
+            default: 'medium'
+          }
+        },
+        additionalProperties: false
+      };
+
+      res.header('Content-Type', 'application/json');
+      res.status(200).json(schema);
+    });
+
+    // Well-known: MCP server card for discovery (simple static card)
+    this.app.get('/.well-known/mcp-server-card', (req, res) => {
+      const serverCard = {
+        $schema: 'https://static.modelcontextprotocol.io/schemas/mcp-server-card/v1.json',
+        version: '1.0',
+        protocolVersion: '2025-11-25',
+        serverInfo: {
+          name: 'hi-ai',
+          title: 'Hi-AI',
+          version: '1.6.0',
+          description: 'Model Context Protocol based AI development assistant',
+          iconUrl: 'https://raw.githubusercontent.com/ssdeanx/ssd-ai/main/icon.png',
+          documentationUrl: 'https://github.com/ssdeanx/ssd-ai'
+        },
+        transport: {
+          type: 'streamable-http',
+          endpoint: '/mcp'
+        },
+        capabilities: {
+          tools: { listChanged: true },
+          prompts: { listChanged: true },
+          resources: { listChanged: true }
+        }
+      };
+
+      res.header('Content-Type', 'application/json');
+      res.status(200).json(serverCard);
+    });
+
     // MCP endpoint
     this.app.all('/mcp', async (req, res) => {
       try {
