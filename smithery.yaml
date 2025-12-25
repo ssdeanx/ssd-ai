@@ -1,3 +1,13 @@
-runtime: "typescript"
+runtime: "container"
+
+build:
+  dockerfile: "Dockerfile"
+  dockerBuildPath: "."
+
+startCommand:
+  type: "http"
+  configSchema: {}
+  exampleConfig: {}
+
 env:
   NODE_ENV: "production"

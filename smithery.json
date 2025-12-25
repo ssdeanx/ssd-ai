@@ -25,7 +25,7 @@
   "repository": "https://github.com/ssdeanx/ssd-ai",
   "readme": "https://github.com/ssdeanx/ssd-ai/blob/main/README.md",
   "icon": "🤖",
-  "runtime": "typescript",
+  "runtime": "container",
   "capabilities": {
     "tools": true,
     "resources": true,
