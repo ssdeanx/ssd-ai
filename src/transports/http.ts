@@ -114,11 +114,18 @@ export class HttpServerTransport {
   }
 
   private setupRoutes() {
-    // Support well-known paths even if prefixed by proxy paths (handle /<prefix>/.well-known/*)
+    // Robust handler: match well-known paths anywhere in URL and for any method (HEAD/GET/OPTIONS)
     this.app.use((req, res, next) => {
-      const url = req.originalUrl || req.url || '';
-      if (url.endsWith('/.well-known/mcp-config')) {
-        console.log('[HTTP] Serving mcp-config for', url);
+      const url = (req.originalUrl || req.url || '').toLowerCase();
+      // Accept queries and trailing slashes; match substring
+      if (url.includes('/.well-known/mcp-config')) {
+        console.log('[HTTP] Well-known probe:', req.method, url, 'host=', req.get('host'));
+        res.header('Cache-Control', 'no-store');
+        res.header('X-MCP-Discovery', 'true');
+        res.header('Content-Type', 'application/json');
+
+        if (req.method === 'OPTIONS') return res.sendStatus(200);
+        // Respond with schema
         const host = req.get('host') || 'localhost';
         const schema = {
           $schema: 'http://json-schema.org/draft-07/schema#',
@@ -143,14 +150,16 @@ export class HttpServerTransport {
           },
           additionalProperties: false
         };
-
-        res.header('Content-Type', 'application/json');
-        res.header('Cache-Control', 'no-store');
         return res.status(200).json(schema);
       }
 
-      if (url.endsWith('/.well-known/mcp-server-card')) {
-        console.log('[HTTP] Serving mcp-server-card for', url);
+      if (url.includes('/.well-known/mcp-server-card')) {
+        console.log('[HTTP] Well-known probe:', req.method, url, 'host=', req.get('host'));
+        res.header('Cache-Control', 'no-store');
+        res.header('X-MCP-Discovery', 'true');
+        res.header('Content-Type', 'application/json');
+
+        if (req.method === 'OPTIONS') return res.sendStatus(200);
         const serverCard = {
           $schema: 'https://static.modelcontextprotocol.io/schemas/mcp-server-card/v1.json',
           version: '1.0',
@@ -179,79 +188,14 @@ export class HttpServerTransport {
           }
         };
 
-        res.header('Content-Type', 'application/json');
-        res.header('Cache-Control', 'no-store');
         return res.status(200).json(serverCard);
       }
 
       next();
     });
 
-    // Well-known: MCP session configuration schema
-    this.app.get('/.well-known/mcp-config', (req, res) => {
-      const host = req.get('host') || 'localhost';
-      const schema = {        $schema: 'http://json-schema.org/draft-07/schema#',
-        $id: `https://${host}/.well-known/mcp-config`,
-        title: 'MCP Session Configuration',
-        description: 'Configuration for connecting to this MCP server',
-        'x-query-style': 'dot+bracket',
-        type: 'object',
-        properties: {
-          enableAutoSave: {
-            type: 'boolean',
-            title: 'Enable Auto Save',
-            description: 'Automatically save session context between interactions',
-            default: true
-          },
-          defaultPriority: {
-            type: 'string',
-            title: 'Default Task Priority',
-            enum: ['low', 'medium', 'high', 'critical'],
-            default: 'medium'
-          }
-        },
-        additionalProperties: false
-      };
+    // Well-known endpoints are handled above by the flexible handler (supports proxies and query strings)
 
-      res.header('Content-Type', 'application/json');
-      res.status(200).json(schema);
-    });
-
-    // Well-known: MCP server card for discovery (simple static card)
-    this.app.get('/.well-known/mcp-server-card', (req, res) => {
-      const serverCard = {
-        $schema: 'https://static.modelcontextprotocol.io/schemas/mcp-server-card/v1.json',
-        version: '1.0',
-        protocolVersion: '2025-11-25',
-        serverInfo: {
-          name: 'hi-ai',
-          title: 'Hi-AI',
-          version: '1.6.0',
-          description: 'Model Context Protocol based AI development assistant',
-          iconUrl: 'https://raw.githubusercontent.com/ssdeanx/ssd-ai/main/icon.png',
-          documentationUrl: 'https://github.com/ssdeanx/ssd-ai'
-        },
-        transport: {
-          type: 'streamable-http',
-          endpoint: '/mcp'
-        },
-        // Explicitly state that authentication is NOT required for this server
-        authentication: {
-          required: false,
-          schemes: []
-        },
-        // No required features (explicit empty array to avoid auto-oauth detection)
-        requires: [],
-        capabilities: {
-          tools: { listChanged: true },
-          prompts: { listChanged: true },
-          resources: { listChanged: true }
-        }
-      };
-
-      res.header('Content-Type', 'application/json');
-      res.status(200).json(serverCard);
-    });
 
     // Health endpoint for quick runtime checks
     this.app.get('/health', (req, res) => {
