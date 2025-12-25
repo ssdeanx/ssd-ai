@@ -29,5 +29,6 @@
     "tools": true,
     "resources": true,
     "prompts": true
-  }
+  },
+  "requires_api_key": false
 }

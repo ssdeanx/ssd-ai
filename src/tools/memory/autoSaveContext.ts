@@ -43,7 +43,7 @@ export async function autoSaveContext(args: {
 
     // Apply smart compression if full context provided and compression enabled
     if (fullContext && compress) {
-      const targetTokens = urgency === 'critical' ? 6000 : urgency === 'high' ? 4000 : 2000;
+      const targetTokens = urgency === 'critical' ? 8000 : urgency === 'high' ? 7000 : 4000;
       const compressionResult = ContextCompressor.compress(fullContext, targetTokens);
 
       contextToSave = compressionResult.compressed;
