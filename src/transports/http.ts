@@ -1,6 +1,8 @@
 import { JSONRPCMessage } from '@modelcontextprotocol/sdk/types.js';
 import express from 'express';
 import { randomUUID } from 'node:crypto';
+import fs from 'fs';
+import path from 'path';
 
 interface HttpTransportOptions {
   port?: number;
@@ -20,7 +22,9 @@ export class HttpServerTransport {
   constructor(options: HttpTransportOptions = {}) {
     this.options = {
       port: 8081,
-      hostname: 'localhost',
+      // Bind to all interfaces by default so container deployments are reachable
+      hostname: '0.0.0.0',
+      // Allowlist kept for reference but we will send permissive CORS for discovery
       allowedOrigins: ['http://localhost:*', 'https://localhost:*'],
       allowedHosts: ['127.0.0.1', 'localhost'],
       ...options
@@ -42,6 +46,42 @@ export class HttpServerTransport {
   private setupMiddleware() {
     this.app.use(express.json({ limit: '10mb' }));
 
+    // Request logging for discovery/debugging
+    // Initialize file-based logging for requests so operators can fetch logs via HTTP
+    const logDir = process.env.LOG_DIR || '/data/logs';
+    const logFile = path.join(logDir, 'requests.log');
+    try {
+      if (!fs.existsSync(logDir)) {
+        fs.mkdirSync(logDir, { recursive: true });
+      }
+    } catch (e) {
+      console.error('Failed to ensure log directory exists:', e);
+    }
+
+    const logToFile = (message: string) => {
+      try {
+        fs.appendFileSync(logFile, `${new Date().toISOString()} ${message}\n`);
+      } catch (e) {
+        // non-fatal - don't block request handling
+        console.error('Error writing to log file:', e);
+      }
+    };
+
+    this.app.use((req, res, next) => {
+      try {
+        const headers = Object.keys(req.headers).reduce((acc, key) => {
+          acc[key] = req.headers[key as keyof typeof req.headers];
+          return acc;
+        }, {} as Record<string, any>);
+        const msg = `[HTTP] ${req.method} ${req.path} - headers: ${JSON.stringify(headers)}`;
+        console.log(msg);
+        logToFile(msg);
+      } catch (e) {
+        console.log('[HTTP] Error logging request', e);
+      }
+      next();
+    });
+
     // CORS middleware
     this.app.use((req, res, next) => {
       const origin = req.headers.origin as string;
@@ -56,11 +96,12 @@ export class HttpServerTransport {
         return allowed === origin;
       });
 
-      if (isAllowed || !origin) {
-        res.header('Access-Control-Allow-Origin', origin || '*');
-      }
+      // For discovery and browser-based clients, allow all origins to avoid CORS blocking.
+      res.header('Access-Control-Allow-Origin', origin || '*');
 
-      res.header('Access-Control-Allow-Headers', 'Content-Type, MCP-Session-Id, MCP-Protocol-Version, Last-Event-ID');
+      // Expose MCP headers and allow common methods/headers
+      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, MCP-Session-Id, MCP-Protocol-Version, Last-Event-ID');
+      res.header('Access-Control-Expose-Headers', 'mcp-session-id, mcp-protocol-version');
       res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
 
       if (req.method === 'OPTIONS') {
@@ -73,11 +114,83 @@ export class HttpServerTransport {
   }
 
   private setupRoutes() {
+    // Support well-known paths even if prefixed by proxy paths (handle /<prefix>/.well-known/*)
+    this.app.use((req, res, next) => {
+      const url = req.originalUrl || req.url || '';
+      if (url.endsWith('/.well-known/mcp-config')) {
+        console.log('[HTTP] Serving mcp-config for', url);
+        const host = req.get('host') || 'localhost';
+        const schema = {
+          $schema: 'http://json-schema.org/draft-07/schema#',
+          $id: `https://${host}/.well-known/mcp-config`,
+          title: 'MCP Session Configuration',
+          description: 'Configuration for connecting to this MCP server',
+          'x-query-style': 'dot+bracket',
+          type: 'object',
+          properties: {
+            enableAutoSave: {
+              type: 'boolean',
+              title: 'Enable Auto Save',
+              description: 'Automatically save session context between interactions',
+              default: true
+            },
+            defaultPriority: {
+              type: 'string',
+              title: 'Default Task Priority',
+              enum: ['low', 'medium', 'high', 'critical'],
+              default: 'medium'
+            }
+          },
+          additionalProperties: false
+        };
+
+        res.header('Content-Type', 'application/json');
+        res.header('Cache-Control', 'no-store');
+        return res.status(200).json(schema);
+      }
+
+      if (url.endsWith('/.well-known/mcp-server-card')) {
+        console.log('[HTTP] Serving mcp-server-card for', url);
+        const serverCard = {
+          $schema: 'https://static.modelcontextprotocol.io/schemas/mcp-server-card/v1.json',
+          version: '1.0',
+          protocolVersion: '2025-11-25',
+          serverInfo: {
+            name: 'hi-ai',
+            title: 'Hi-AI',
+            version: '1.6.0',
+            description: 'Model Context Protocol based AI development assistant',
+            iconUrl: 'https://raw.githubusercontent.com/ssdeanx/ssd-ai/main/icon.png',
+            documentationUrl: 'https://github.com/ssdeanx/ssd-ai'
+          },
+          transport: {
+            type: 'streamable-http',
+            endpoint: '/mcp'
+          },
+          authentication: {
+            required: false,
+            schemes: []
+          },
+          requires: [],
+          capabilities: {
+            tools: { listChanged: true },
+            prompts: { listChanged: true },
+            resources: { listChanged: true }
+          }
+        };
+
+        res.header('Content-Type', 'application/json');
+        res.header('Cache-Control', 'no-store');
+        return res.status(200).json(serverCard);
+      }
+
+      next();
+    });
+
     // Well-known: MCP session configuration schema
     this.app.get('/.well-known/mcp-config', (req, res) => {
       const host = req.get('host') || 'localhost';
-      const schema = {
-        $schema: 'http://json-schema.org/draft-07/schema#',
+      const schema = {        $schema: 'http://json-schema.org/draft-07/schema#',
         $id: `https://${host}/.well-known/mcp-config`,
         title: 'MCP Session Configuration',
         description: 'Configuration for connecting to this MCP server',
@@ -138,6 +251,50 @@ export class HttpServerTransport {
 
       res.header('Content-Type', 'application/json');
       res.status(200).json(serverCard);
+    });
+
+    // Health endpoint for quick runtime checks
+    this.app.get('/health', (req, res) => {
+      const health = {
+        status: 'ok',
+        authentication: false,
+        memories: {
+          dir: process.env.MEMORIES_DIR || null,
+          dbPath: process.env.MEMORY_DB_PATH || null
+        },
+        endpoints: {
+          mcp: '/mcp',
+          mcpConfig: '/.well-known/mcp-config',
+          mcpServerCard: '/.well-known/mcp-server-card',
+          logs: '/logs'
+        }
+      };
+      res.header('Content-Type', 'application/json');
+      res.status(200).json(health);
+    });
+
+    // Logs endpoint - returns last N lines of request log
+    this.app.get('/logs', (req, res) => {
+      const logDir = process.env.LOG_DIR || '/data/logs';
+      const logFile = path.join(logDir, 'requests.log');
+      const lines = parseInt((req.query.lines as string) || '100', 10);
+
+      try {
+        if (!fs.existsSync(logFile)) {
+          return res.status(404).json({ error: 'Log file not found' });
+        }
+
+        // Read file and return last `lines` lines
+        const data = fs.readFileSync(logFile, 'utf-8');
+        const allLines = data.trim().split('\n');
+        const tail = allLines.slice(Math.max(0, allLines.length - lines)).join('\n');
+
+        res.header('Content-Type', 'text/plain');
+        return res.status(200).send(tail);
+      } catch (error) {
+        console.error('Error reading logs:', error);
+        return res.status(500).json({ error: 'Failed to read logs' });
+      }
     });
 
     // MCP endpoint

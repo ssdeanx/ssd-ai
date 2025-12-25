@@ -37,5 +37,10 @@ ENV MEMORIES_DIR=/data/memories
 RUN mkdir -p ${MEMORIES_DIR} && chown -R node:node ${MEMORIES_DIR}
 VOLUME ["/data/memories"]
 
+# Directory for request logs (mounted volume)
+ENV LOG_DIR=/data/logs
+RUN mkdir -p ${LOG_DIR} && chown -R node:node ${LOG_DIR}
+VOLUME ["/data/logs"]
+
 # Start in HTTP transport mode, bind to 0.0.0.0 so container is reachable
 CMD ["node", "dist/index.js", "--transport=http", "--port=8081", "--hostname=0.0.0.0"]

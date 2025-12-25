@@ -740,9 +740,13 @@ async function main(): Promise<void> {
   //   node dist/index.js --transport=http --port=3000 --hostname=localhost
 
   const cli = parseCliArgs(process.argv.slice(2));
-  const transportType = cli.transport || 'stdio'; // default to STDIO for local runs
+  // Prefer HTTP when running inside a container (Smithery sets PORT=8081)
+  const transportType = cli.transport || (process.env.PORT ? 'http' : 'stdio');
   const port = cli.port ?? (process.env.PORT ? parseInt(process.env.PORT, 10) : 8081);
-  const hostname = cli.hostname ?? 'localhost';
+  const hostname = cli.hostname ?? (process.env.HOSTNAME || '0.0.0.0');
+
+  // Startup info for debugging environment and transport selection
+  console.log(`Starting MCP server with transport=${transportType}, port=${port}, hostname=${hostname}`);
 
   const server: McpServer = buildServer();
 
@@ -808,6 +812,12 @@ async function main(): Promise<void> {
     });
 
     await transport.start();
+
+    // Log runtime info to help discovery/debugging
+    console.log(`Authentication: disabled — server does not require auth`);
+    console.log(`Discovery endpoints: /.well-known/mcp-config, /.well-known/mcp-server-card`);
+    console.log(`Memory storage: MEMORIES_DIR=${process.env.MEMORIES_DIR || 'not-set'}, MEMORY_DB_PATH=${process.env.MEMORY_DB_PATH || 'not-set'}`);
+
     await server.connect(transport as any);
   }
 }
