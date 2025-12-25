@@ -19,9 +19,9 @@
     "hi-ai": "dist/index.js"
   },
   "scripts": {
-    "dev": "npm run build && node dist/index.js --transport=http --port=3000 --hostname=localhost",
+    "dev": "npm run build && node dist/index.js --transport=http --port=8081 --hostname=localhost",
     "dev:stdio": "npm run build && node dist/index.js --transport=stdio",
-    "start:http": "npm run build && node dist/index.js --transport=http --port=3000 --hostname=localhost",
+    "start:http": "npm run build && node dist/index.js --transport=http --port=8081 --hostname=localhost",
     "start:stdio": "npm run build && node dist/index.js --transport=stdio",
     "build": "tsc",
     "build:http": "npx smithery build",
