@@ -1,20 +1,21 @@
-FROM node:18-alpine
+FROM node:22-slim
 
 WORKDIR /app
 
-# Chrome/Chromium 의존성 설치 (puppeteer-core용)
-RUN apk add --no-cache \
+# Install dependencies for keytar (libsecret) and Chromium for puppeteer
+RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium \
-    nss \
-    freetype \
-    freetype-dev \
-    harfbuzz \
+    libsecret-1-0 \
+    libnss3 \
+    libfreetype6 \
+    libharfbuzz0b \
     ca-certificates \
-    ttf-freefont
+    fonts-freefont-ttf \
+  && rm -rf /var/lib/apt/lists/*
 
-# Puppeteer 환경 변수 설정
+# Puppeteer environment variables
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 # Copy package files
 COPY package*.json ./
