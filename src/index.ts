@@ -749,6 +749,9 @@ async function main(): Promise<void> {
   if (transportType === 'stdio') {
     const transport = new StdioServerTransport();
 
+    // Log auth state for clarity
+    console.log('Authentication: disabled — server does not require auth');
+
     // Handle process termination gracefully
     process.on('SIGINT', async () => {
       await server.close();

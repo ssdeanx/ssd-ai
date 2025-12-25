@@ -32,5 +32,10 @@ RUN npm run build
 # Default port that Smithery sets (8081) and bind to all interfaces for container
 ENV PORT=8081
 
+# Directory for persisted memories (mounted volume)
+ENV MEMORIES_DIR=/data/memories
+RUN mkdir -p ${MEMORIES_DIR} && chown -R node:node ${MEMORIES_DIR}
+VOLUME ["/data/memories"]
+
 # Start in HTTP transport mode, bind to 0.0.0.0 so container is reachable
 CMD ["node", "dist/index.js", "--transport=http", "--port=8081", "--hostname=0.0.0.0"]

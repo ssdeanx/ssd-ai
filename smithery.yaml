@@ -11,3 +11,4 @@ startCommand:
 
 env:
   NODE_ENV: "production"
+  MEMORIES_DIR: "/data/memories"

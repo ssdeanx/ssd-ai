@@ -122,6 +122,13 @@ export class HttpServerTransport {
           type: 'streamable-http',
           endpoint: '/mcp'
         },
+        // Explicitly state that authentication is NOT required for this server
+        authentication: {
+          required: false,
+          schemes: []
+        },
+        // No required features (explicit empty array to avoid auto-oauth detection)
+        requires: [],
         capabilities: {
           tools: { listChanged: true },
           prompts: { listChanged: true },

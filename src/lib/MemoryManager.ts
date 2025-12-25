@@ -34,10 +34,15 @@ export class MemoryManager {
   private statsStmt: Database.Statement | null = null;
 
   private constructor(customDbPath?: string) {
+    // Allow overriding the storage location via environment variables for container deployments
+    // Priority: explicit customDbPath (used in tests) > MEMORY_DB_PATH (file path) > MEMORIES_DIR (directory) > ./memories
     if (customDbPath) {
       this.dbPath = customDbPath;
+    } else if (process.env.MEMORY_DB_PATH) {
+      this.dbPath = process.env.MEMORY_DB_PATH;
     } else {
-      const memoryDir = path.join(process.cwd(), 'memories');
+      const memoryDirFromEnv = process.env.MEMORIES_DIR;
+      const memoryDir = memoryDirFromEnv ? path.resolve(memoryDirFromEnv) : path.join(process.cwd(), 'memories');
       this.dbPath = path.join(memoryDir, 'memories.db');
 
       // Ensure directory exists synchronously (needed for DB init)
@@ -57,7 +62,7 @@ export class MemoryManager {
     this.initializeDatabase();
 
     // Only migrate if using default path (not for tests)
-    if (!customDbPath) {
+    if (!customDbPath && !process.env.MEMORY_DB_PATH && !process.env.MEMORIES_DIR) {
       this.migrateFromJSON();
     }
   }
